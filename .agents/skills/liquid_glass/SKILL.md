@@ -1,5 +1,5 @@
 ---
-name: liquid-glass
+name: liquid_glass
 description: Expert guidance for implementing the "Liquid Glass" design language (iOS 26 Style) in Flutter. Focuses on translucency, spatial depth, "ExtendBody" scroll management, and the "Extra Button" contextual action pattern.
 metadata:
   version: "1.0"
