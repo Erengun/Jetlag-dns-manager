@@ -1,194 +1,59 @@
 [![Stand With Palestine](https://raw.githubusercontent.com/TheBSD/StandWithPalestine/main/banner-no-action.svg)](https://thebsd.github.io/StandWithPalestine)
-# Flutter Riverpod Template - 2025 Edition
+# Jetlag DNS Manager
 
-## Modern Flutter Architecture Template with Riverpod
+A cross-platform Flutter application to easily change your DNS settings on Android, iOS, Windows, and Linux. Enhance your privacy and security by using trusted public DNS providers like Cloudflare, Google, AdGuard, and more.
 
-A production-ready Flutter template built with the latest packages and best practices, supporting Flutter 3.32 and above. This template implements clean architecture principles and provides a robust foundation for building scalable applications.
+## Features
 
----
-
-### Key Features
-
-- 🏗️ Clean Architecture with Domain-Driven Design
-- 🎯 Riverpod 2.6+ with code generation
-- 🔒 Built-in authentication pack with secure storage (Hive CE + AES-256)
-- 🌐 Type-safe API integration with Dio 5.8+
-- 📱 Responsive UI with adaptive widgets
-- 🌍 Internationalization ready with Easy Localization
-- 💾 Secure local storage with Hive CE
-- 🧪 Pre-configured unit testing for authentication and controller logic
-- ⚡ Modern navigation with GoRouter 14.8+
-- 🛠️ Custom linting and devtools configuration
-
----
-
-## Tech Stack
-
-**Core Libraries:**
-- State Management: Riverpod 2.6.1, Freezed 3.0.6 (immutable state)
-- Network Layer: Dio 5.8.0, FPDart 1.1.0 for functional error handling
-- Local Storage: Hive CE 2.11.1 with AES-256 encryption
-- UI & Navigation: GoRouter 14.8.0, Google Fonts 6.2.1, Material 3
-
-**Developer Tools:**
-- Flutter Lints 5.0.0
-- Build Runner, code generation
-- Custom linting rules (`lint_rules.yaml`)
-- Dart & Flutter DevTools support
-
----
-
-## Project Structure
-
-```
-lib/
-├── common/            # Shared widgets and components
-├── config/            # App configuration (theme etc.)
-├── constants/         # App-wide constants (endpoints, assets)
-├── core/              # Core functionality, network layer
-├── features/          # Feature modules (authentication, home, ...)
-│   └── authentication/
-│       ├── data/
-│       ├── domain/
-│       └── presentation/
-├── hive/              # Local storage setup and adapters
-├── router/            # Navigation & routing
-├── utils/             # Utility functions
-├── main.dart          # App entry point
-└── my_app.dart        # App configuration
-```
-
----
+*   **Cross-Platform Support**: Runs on Android, iOS, Windows, and Linux.
+*   **Adaptive UI**: Automatically switches between Material Design (Android/Desktop) and Cupertino (iOS) for a native feel.
+*   **No Root Required (Android)**: Works on non-rooted devices by guiding users to system settings (Android 9+). Supports direct changes on rooted devices.
+*   **Secure DNS**: Supports DNS-over-HTTPS (DoH) and DNS-over-TLS (DoT) where applicable.
+*   **State Management**: Built with `flutter_riverpod` for robust and testable state management.
+*   **Extensible**: Easily add custom DNS providers.
 
 ## Getting Started
 
+### Prerequisites
 
-### Setup
+*   Flutter SDK (3.10.0 or later)
+*   Dart SDK
+*   Platform-specific development tools (Android Studio, Xcode, Visual Studio, etc.)
 
-1. **Clone the template:**
+### Installation
+
+1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/Erengun/Flutter-Riverpod-2.0-Template.git my_app
-    cd my_app
+    git clone https://github.com/Erengun/jetlag_dns_manager.git
+    cd jetlag_dns_manager
     ```
 
-2. **Install dependencies:**
+2.  **Install dependencies:**
     ```bash
     flutter pub get
     ```
 
-3. **Generate code:**
+3.  **Run the code generator (for Riverpod):**
     ```bash
     dart run build_runner build --delete-conflicting-outputs
     ```
 
-4. **Setup environment:**
-    ```bash
-    cp .env.example .env
-    ```
+### Platform-Specific Setup
 
-5. **Run the app:**
-    ```bash
-    flutter run --flavor prod -t lib/main_prod.dart
-    ```
+#### Android
+*   **Non-Rooted**: The app uses a `MethodChannel` to open the Android Private DNS settings. No special permissions required.
+*   **Rooted**: Requires root access to execute `su` commands for direct DNS setting.
 
----
+#### iOS
+*   **Entitlements**: This app requires the **Network Extension** entitlement (`com.apple.developer.networking.networkextension`) to manage DNS settings programmatically.
+*   **Provisioning**: You must have a paid Apple Developer account to use this entitlement.
+*   **Configuration**: The `NEDNSSettingsManager` is implemented in `AppDelegate.swift`.
 
-## Flavors (app names & package IDs)
+#### Windows
+*   **Permissions**: The app executes PowerShell scripts to change DNS settings. This triggers a UAC prompt for Administrator privileges when connecting.
 
-This template ships with dev, staging, and prod flavors for Android and iOS.
-
-### Run commands
-
-- Dev:
-    ```bash
-    flutter run --flavor dev -t lib/main_dev.dart
-    ```
-- Staging:
-    ```bash
-    flutter run --flavor staging -t lib/main_staging.dart
-    ```
-- Prod:
-    ```bash
-    flutter run --flavor prod -t lib/main_prod.dart
-    ```
-
-### Customize names and IDs
-
-- Android flavor names and applicationId suffixes: [android/app/build.gradle.kts](android/app/build.gradle.kts)
-- iOS bundle IDs and display names: [ios/Flutter/Debug-dev.xcconfig](ios/Flutter/Debug-dev.xcconfig) (and the other flavor xcconfig files)
-- Dart-side flavor labels: [lib/flavors/app_flavor.dart](lib/flavors/app_flavor.dart)
-
----
-
-## Authentication Module
-
-The template includes a complete authentication system with secure credential storage and error handling.
-
-### How it works
-
-- **Login & Registration:** Uses Dio to POST to `/api/login` and `/api/register` endpoints.
-- **Credential Caching:** Credentials are securely cached in Hive CE using AES-256 encryption, with key derived per-device.
-- **State Management:** All authentication UI and logic is managed via Riverpod notifiers and state classes.
-- **Error Handling:** All network and validation errors are surfaced in the UI.
-- **Loading State:** UI reflects loading and error states for a smooth UX.
-
-### Test Credentials
-
-You can test the authentication functionality using these credentials from [reqres.in](https://reqres.in/):
-
-**Login:**
-```json
-{
-    "email": "eve.holt@reqres.in",
-    "password": "cityslicka"
-}
-```
-
-**Register:**
-```json
-{
-    "email": "eve.holt@reqres.in",
-    "password": "pistol"
-}
-```
-
-**Example:**
-```dart
-@riverpod
-class LoginController extends _$LoginController {
-  // ... state and logic here
-  Future<LoginResponse> login({required String email, required String password}) async {
-    // Handles login, error handling, caching, loading state etc.
-  }
-}
-```
----
-
-## Testing
-
-- Integrated tests for auth controller logic (`test/features/login_controller_test.dart`)
-- Run tests with:
-    ```bash
-    flutter test
-    ```
-
----
-
-## Documentation
-
-- Up-to-date documentation in this README
-- Code comments and examples throughout
-
----
-
-## Contributing
-
-See our [Contributing Guide](CONTRIBUTING.md) for details on how to:
-- Set up your development environment
-- Run tests
-- Submit pull requests
-
----
+#### Linux
+*   **Dependencies**: Relies on `resolvectl` (part of `systemd-resolved`). Ensure your distribution uses `systemd-resolved`.
 
 ## License
 

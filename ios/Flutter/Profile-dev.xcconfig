@@ -1,5 +1,0 @@
-#include "Release.xcconfig"
-BUNDLE_ID = com.example.temp.dev
-APP_DISPLAY_NAME = Temp Dev
-APP_NAME = TempDev
-FLAVOR = dev

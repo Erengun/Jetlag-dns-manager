@@ -1,4 +1,4 @@
-package com.example.temp
+package io.devopen.jetlag
 
 import io.flutter.embedding.android.FlutterActivity
 

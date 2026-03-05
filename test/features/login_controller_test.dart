@@ -1,13 +1,13 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod_template/features/authentication/data/authentication_repository.dart';
-import 'package:flutter_riverpod_template/features/authentication/data/hive/user_repository.dart';
-import 'package:flutter_riverpod_template/features/authentication/domain/login_request.dart';
-import 'package:flutter_riverpod_template/features/authentication/domain/login_response.dart';
-import 'package:flutter_riverpod_template/features/authentication/domain/register_response.dart';
-import 'package:flutter_riverpod_template/features/authentication/presentation/login/auth_ui_model.dart';
-import 'package:flutter_riverpod_template/features/authentication/presentation/login/login_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jetlag_dns_manager/features/authentication/data/authentication_repository.dart';
+import 'package:jetlag_dns_manager/features/authentication/data/hive/user_repository.dart';
+import 'package:jetlag_dns_manager/features/authentication/domain/login_request.dart';
+import 'package:jetlag_dns_manager/features/authentication/domain/login_response.dart';
+import 'package:jetlag_dns_manager/features/authentication/domain/register_response.dart';
+import 'package:jetlag_dns_manager/features/authentication/presentation/login/auth_ui_model.dart';
+import 'package:jetlag_dns_manager/features/authentication/presentation/login/login_controller.dart';
 import 'package:riverpod/src/framework.dart';
 
 class FakeAuthRepository implements AuthenticationRepository {
