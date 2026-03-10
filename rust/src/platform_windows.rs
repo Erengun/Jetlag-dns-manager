@@ -8,7 +8,12 @@
 // when compiled with the `windows-dns` feature.
 
 use crate::models::*;
+use log::warn;
 use std::process::Command;
+
+fn escape_powershell_single_quoted(value: &str) -> String {
+    value.replace('\'', "''")
+}
 
 /// Set DNS on Windows using PowerShell `Set-DnsClientServerAddress`.
 /// Note: This requires administrator privileges and will trigger UAC.
@@ -27,10 +32,13 @@ pub fn set_dns(provider: &DnsProvider, interface_name: Option<&str>) -> DnsChang
         },
     };
 
-    let addresses = format!("'{}','{}'", provider.primary_dns, provider.secondary_dns);
+    let escaped_iface = escape_powershell_single_quoted(&iface);
+    let escaped_primary_dns = escape_powershell_single_quoted(&provider.primary_dns);
+    let escaped_secondary_dns = escape_powershell_single_quoted(&provider.secondary_dns);
+    let addresses = format!("'{}','{}'", escaped_primary_dns, escaped_secondary_dns);
     let script = format!(
         "Set-DnsClientServerAddress -InterfaceAlias '{}' -ServerAddresses ({})",
-        iface, addresses
+        escaped_iface, addresses
     );
 
     match Command::new("powershell")
@@ -40,7 +48,23 @@ pub fn set_dns(provider: &DnsProvider, interface_name: Option<&str>) -> DnsChang
         Ok(output) => {
             if output.status.success() {
                 // Flush DNS cache
-                let _ = Command::new("ipconfig").args(["/flushdns"]).output();
+                match Command::new("ipconfig").args(["/flushdns"]).output() {
+                    Ok(flush_output) => {
+                        if !flush_output.status.success() {
+                            let stderr = String::from_utf8_lossy(&flush_output.stderr);
+                            let stdout = String::from_utf8_lossy(&flush_output.stdout);
+                            warn!(
+                                "ipconfig /flushdns failed (status: {:?}): stderr='{}' stdout='{}'",
+                                flush_output.status.code(),
+                                stderr.trim(),
+                                stdout.trim()
+                            );
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Failed to execute ipconfig /flushdns: {}", e);
+                    }
+                }
 
                 DnsChangeResult::success(
                     DnsChangeMethod::WindowsApi,
@@ -97,9 +121,10 @@ pub fn reset_dns(interface_name: Option<&str>) -> DnsChangeResult {
         },
     };
 
+    let escaped_iface = escape_powershell_single_quoted(&iface);
     let script = format!(
         "Set-DnsClientServerAddress -InterfaceAlias '{}' -ResetServerAddresses",
-        iface
+        escaped_iface
     );
 
     match Command::new("powershell")
@@ -108,7 +133,23 @@ pub fn reset_dns(interface_name: Option<&str>) -> DnsChangeResult {
     {
         Ok(output) => {
             if output.status.success() {
-                let _ = Command::new("ipconfig").args(["/flushdns"]).output();
+                match Command::new("ipconfig").args(["/flushdns"]).output() {
+                    Ok(flush_output) => {
+                        if !flush_output.status.success() {
+                            let stderr = String::from_utf8_lossy(&flush_output.stderr);
+                            let stdout = String::from_utf8_lossy(&flush_output.stdout);
+                            warn!(
+                                "ipconfig /flushdns failed (status: {:?}): stderr='{}' stdout='{}'",
+                                flush_output.status.code(),
+                                stderr.trim(),
+                                stdout.trim()
+                            );
+                        }
+                    }
+                    Err(e) => {
+                        warn!("Failed to execute ipconfig /flushdns: {}", e);
+                    }
+                }
                 DnsChangeResult::success(
                     DnsChangeMethod::WindowsApi,
                     &format!("DNS reset to DHCP defaults on {}", iface),
@@ -131,10 +172,13 @@ pub fn reset_dns(interface_name: Option<&str>) -> DnsChangeResult {
 /// Get current DNS servers on Windows.
 pub fn get_current_dns(interface_name: Option<&str>) -> Vec<String> {
     let script = match interface_name {
-        Some(iface) => format!(
+        Some(iface) => {
+            let escaped_iface = escape_powershell_single_quoted(iface);
+            format!(
             "Get-DnsClientServerAddress -InterfaceAlias '{}' -AddressFamily IPv4 | Select-Object -ExpandProperty ServerAddresses",
-            iface
-        ),
+            escaped_iface
+        )
+        }
         None => "Get-DnsClientServerAddress -AddressFamily IPv4 | Where-Object {{ $_.ServerAddresses.Count -gt 0 }} | Select-Object -First 1 -ExpandProperty ServerAddresses".to_string(),
     };
 
