@@ -8,6 +8,7 @@
 // silent DNS changes without password prompts.
 
 use crate::models::*;
+use log::warn;
 use std::process::Command;
 
 /// Set DNS on Linux using `resolvectl dns`.
@@ -26,7 +27,6 @@ pub fn set_dns(provider: &DnsProvider, interface_name: Option<&str>) -> DnsChang
     };
 
     // Set DNS servers
-    let dns_args = format!("{} {}", provider.primary_dns, provider.secondary_dns);
     let result = Command::new("resolvectl")
         .args(["dns", &iface, &provider.primary_dns, &provider.secondary_dns])
         .output();
@@ -55,15 +55,51 @@ pub fn set_dns(provider: &DnsProvider, interface_name: Option<&str>) -> DnsChang
 
     // Enable DNS-over-TLS if the provider supports it
     if provider.dot_hostname.is_some() {
-        let _ = Command::new("resolvectl")
+        match Command::new("resolvectl")
             .args(["dnstls", &iface, "yes"])
-            .output();
+            .output()
+        {
+            Ok(output) => {
+                if !output.status.success() {
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    warn!(
+                        "resolvectl dnstls failed on {} (status: {:?}): stderr='{}' stdout='{}'",
+                        iface,
+                        output.status.code(),
+                        stderr.trim(),
+                        stdout.trim()
+                    );
+                }
+            }
+            Err(e) => {
+                warn!("Failed to execute resolvectl dnstls on {}: {}", iface, e);
+            }
+        }
     }
 
     // Set the route-only domain wildcard to force all traffic through our DNS
-    let _ = Command::new("resolvectl")
+    match Command::new("resolvectl")
         .args(["domain", &iface, "~."])
-        .output();
+        .output()
+    {
+        Ok(output) => {
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                warn!(
+                    "resolvectl domain failed on {} (status: {:?}): stderr='{}' stdout='{}'",
+                    iface,
+                    output.status.code(),
+                    stderr.trim(),
+                    stdout.trim()
+                );
+            }
+        }
+        Err(e) => {
+            warn!("Failed to execute resolvectl domain on {}: {}", iface, e);
+        }
+    }
 
     DnsChangeResult::success(
         DnsChangeMethod::Resolvectl,
