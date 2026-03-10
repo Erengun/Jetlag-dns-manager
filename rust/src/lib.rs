@@ -9,12 +9,10 @@ pub mod api;
 pub mod models;
 pub mod providers;
 
-#[cfg(target_os = "windows")]
-#[cfg(feature = "windows-dns")]
+#[cfg(all(target_os = "windows", feature = "windows-dns"))]
 pub mod platform_windows;
 
-#[cfg(target_os = "linux")]
-#[cfg(feature = "linux-dns")]
+#[cfg(all(target_os = "linux", feature = "linux-dns"))]
 pub mod platform_linux;
 
 #[cfg(target_os = "macos")]
