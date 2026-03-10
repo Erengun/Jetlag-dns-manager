@@ -108,6 +108,18 @@ pub fn reset_dns(interface_name: Option<String>) -> DnsChangeResult {
 }
 
 /// Get the current system DNS servers (desktop only).
+///
+/// **⚠️ WARNING: Blocking I/O — must be called from a background isolate!**
+///
+/// This function executes system commands (`resolvectl` on Linux, PowerShell on Windows, etc.)
+/// and will block the calling thread. **Do not call this from the UI thread** or the Flutter
+/// main isolate. Instead, use `compute()`, `Isolate.run()`, or spawn a separate isolate
+/// to avoid freezing the UI.
+///
+/// # Example (Dart)
+/// ```dart
+/// final dns = await compute(getDnsViaFRB, interfaceName);
+/// ```
 #[flutter_rust_bridge::frb(sync)]
 pub fn get_current_dns(interface_name: Option<String>) -> Vec<String> {
     #[cfg(target_os = "macos")]
@@ -130,6 +142,18 @@ pub fn get_current_dns(interface_name: Option<String>) -> Vec<String> {
 }
 
 /// List active network interfaces (desktop only).
+///
+/// **⚠️ WARNING: Blocking I/O — must be called from a background isolate!**
+///
+/// This function executes system commands (`networksetup` on macOS,
+/// PowerShell on Windows, `ip` on Linux) and will block the calling thread.
+/// **Do not call this from the UI thread** or the Flutter main isolate. Instead,
+/// use `compute()`, `Isolate.run()`, or spawn a separate isolate to avoid freezing the UI.
+///
+/// # Example (Dart)
+/// ```dart
+/// final interfaces = await compute(getActiveInterfacesViaFRB, null);
+/// ```
 #[flutter_rust_bridge::frb(sync)]
 pub fn get_active_interfaces() -> Vec<NetworkInterface> {
     #[cfg(target_os = "macos")]
