@@ -161,13 +161,7 @@ pub fn custom_provider(
 
 /// Validate an IPv4 address format.
 pub fn validate_ipv4(addr: &str) -> bool {
-    let parts: Vec<&str> = addr.split('.').collect();
-    if parts.len() != 4 {
-        return false;
-    }
-    parts.iter().all(|part| {
-        part.parse::<u8>().is_ok()
-    })
+    addr.parse::<std::net::Ipv4Addr>().is_ok()
 }
 
 /// Validate an IPv6 address format (basic validation).
