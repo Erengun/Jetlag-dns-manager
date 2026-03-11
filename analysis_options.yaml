@@ -19,6 +19,8 @@ analyzer:
     # for the sake of consistency.
     unused_element_parameter: false
     unrecognized_error_code: ignore
+    always_specify_types: ignore
+    avoid_positional_boolean_parameters: ignore
 
 linter:
   rules:
