@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "flutter-layout": {
+      "source": "flutter/skills",
+      "sourceType": "github",
+      "computedHash": "39097d1c7f69f59a965f4475f1d11f649ded2680c154c072579f75ac536138b9"
+    },
+    "flutter-performance": {
+      "source": "flutter/skills",
+      "sourceType": "github",
+      "computedHash": "66ce2d80fdefd9ce89ec11d85e6f904bcf842cb64893b3e68eabbaf28523e8bc"
+    }
+  }
+}
