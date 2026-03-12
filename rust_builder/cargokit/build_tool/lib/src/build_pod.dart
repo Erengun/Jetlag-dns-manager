@@ -1,5 +1,5 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+// This is copied from Cargokit (which is the official way to use it currently)
+// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
 import 'dart:io';
 
@@ -48,11 +48,11 @@ class BuildPod {
 
     final staticLibs = artifacts.values
         .expand((element) => element)
-        .where((element) => element.type == AritifactType.staticlib)
+        .where((element) => element.type == ArtifactType.staticlib)
         .toList();
     final dynamicLibs = artifacts.values
         .expand((element) => element)
-        .where((element) => element.type == AritifactType.dylib)
+        .where((element) => element.type == ArtifactType.dylib)
         .toList();
 
     final libName = environment.crateInfo.packageName;
@@ -71,7 +71,12 @@ class BuildPod {
       for (final bundlePath in bundlePaths) {
         final targetFile = path.join(outputDir, bundlePath);
         if (File(targetFile).existsSync()) {
-          performLipo(targetFile, dynamicLibs.map((e) => e.path));
+          if (dynamicLibs.isNotEmpty) {
+            performLipo(targetFile, dynamicLibs.map((e) => e.path));
+          } else {
+            throw Exception(
+                'No dynamic libraries available to lipo into $bundlePath');
+          }
 
           // Replace absolute id with @rpath one so that it works properly
           // when moved to Frameworks.

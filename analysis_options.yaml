@@ -19,7 +19,9 @@ analyzer:
     # for the sake of consistency.
     unused_element_parameter: false
     unrecognized_error_code: ignore
+    # Generated Flutter Rust Bridge code uses untyped patterns that trip this rule.
     always_specify_types: ignore
+    # Generated Flutter Rust Bridge code uses positional booleans in binding signatures.
     avoid_positional_boolean_parameters: ignore
 
 linter:

@@ -18,15 +18,11 @@ pub fn set_dns(provider: &DnsProvider, interface_name: Option<&str>) -> DnsChang
     let mut args = vec!["-setdnsservers", service, &provider.primary_dns, &provider.secondary_dns];
 
     // Add IPv6 addresses if available
-    let ipv6_primary;
-    let ipv6_secondary;
-    if let Some(ref ipv6) = provider.primary_dns_ipv6 {
-        ipv6_primary = ipv6.clone();
-        args.push(&ipv6_primary);
+    if let Some(ipv6) = provider.primary_dns_ipv6.as_deref() {
+        args.push(ipv6);
     }
-    if let Some(ref ipv6) = provider.secondary_dns_ipv6 {
-        ipv6_secondary = ipv6.clone();
-        args.push(&ipv6_secondary);
+    if let Some(ipv6) = provider.secondary_dns_ipv6.as_deref() {
+        args.push(ipv6);
     }
 
     match Command::new("networksetup").args(&args).output() {
@@ -144,13 +140,13 @@ pub fn get_active_interfaces() -> Vec<NetworkInterface> {
     services
         .into_iter()
         .enumerate()
-        .filter_map(|(index, name)| {
+        .map(|(index, name)| {
             let is_active = is_service_active(&name);
-            Some(NetworkInterface {
+            NetworkInterface {
                 name,
                 index: index as u32,
                 is_active,
-            })
+            }
         })
         .collect()
 }

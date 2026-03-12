@@ -156,9 +156,15 @@ pub fn reset_dns(interface_name: Option<&str>) -> DnsChangeResult {
                 )
             } else {
                 let stderr = String::from_utf8_lossy(&output.stderr);
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                let error_msg = if !stderr.trim().is_empty() {
+                    stderr.to_string()
+                } else {
+                    stdout.to_string()
+                };
                 DnsChangeResult::failure(
                     DnsChangeMethod::WindowsApi,
-                    &format!("DNS reset failed: {}", stderr.trim()),
+                    &format!("DNS reset failed: {}", error_msg.trim()),
                 )
             }
         }
@@ -187,6 +193,11 @@ pub fn get_current_dns(interface_name: Option<&str>) -> Vec<String> {
         .output()
     {
         Ok(output) => {
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                warn!("get_current_dns PowerShell failed: {}", stderr.trim());
+                return Vec::new();
+            }
             let stdout = String::from_utf8_lossy(&output.stdout);
             stdout
                 .lines()

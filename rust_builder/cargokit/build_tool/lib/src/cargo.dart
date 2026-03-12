@@ -1,12 +1,12 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+// This is copied from Cargokit (which is the official way to use it currently)
+// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:toml/toml.dart';
 
-class ManifestException {
+class ManifestException implements Exception {
   ManifestException(this.message, {required this.fileName});
 
   final String? fileName;

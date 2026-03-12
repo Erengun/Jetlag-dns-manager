@@ -1,3 +1,5 @@
+*.cmd text eol=crlf
+*.bat text eol=crlf
 *.config.dart linguist-generated=true
 *.freezed.dart linguist-generated=true
 *.g.dart linguist-generated=true

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 set -e
 
 BASEDIR=$(dirname "$0")
@@ -11,12 +11,12 @@ NEW_PATH=`echo $PATH | tr ":" "\n" | grep -v "Contents/Developer/" | tr "\n" ":"
 
 export PATH=${NEW_PATH%?} # remove trailing :
 
-env
+if [ "$DEBUG" = "1" ]; then env > build_env.log; fi
 
 # Platform name (macosx, iphoneos, iphonesimulator)
 export CARGOKIT_DARWIN_PLATFORM_NAME=$PLATFORM_NAME
 
-# Arctive architectures (arm64, armv7, x86_64), space separated.
+# Active architectures (arm64, armv7, x86_64), space separated.
 export CARGOKIT_DARWIN_ARCHS=$ARCHS
 
 # Current build configuration (Debug, Release)

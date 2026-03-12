@@ -1,5 +1,5 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+// This is copied from Cargokit (which is the official way to use it currently)
+// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
 import 'dart:io';
 
@@ -17,10 +17,9 @@ class BuildCMake {
   BuildCMake({required this.userOptions});
 
   Future<void> build() async {
-    final targetPlatform = Environment.targetPlatform;
     final target = Target.forFlutterName(Environment.targetPlatform);
     if (target == null) {
-      throw Exception("Unknown target platform: $targetPlatform");
+      throw Exception("Unknown target platform: ${Environment.targetPlatform}");
     }
 
     final environment = BuildEnvironment.fromEnvironment(isAndroid: false);
@@ -28,10 +27,13 @@ class BuildCMake {
         ArtifactProvider(environment: environment, userOptions: userOptions);
     final artifacts = await provider.getArtifacts([target]);
 
-    final libs = artifacts[target]!;
+    final libs = artifacts[target];
+    if (libs == null) {
+      throw StateError('No artifacts found for target $target');
+    }
 
     for (final lib in libs) {
-      if (lib.type == AritifactType.dylib) {
+      if (lib.type == ArtifactType.dylib) {
         File(lib.path)
             .copySync(path.join(Environment.outputDir, lib.finalFileName));
       }

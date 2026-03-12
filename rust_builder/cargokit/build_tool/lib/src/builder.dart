@@ -1,5 +1,5 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+// This is copied from Cargokit (which is the official way to use it currently)
+// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
@@ -74,7 +74,7 @@ class BuildEnvironment {
       (e) => e.name == firstSegment,
     );
     if (buildConfiguration == null) {
-      _log.warning('Unknown build configuraiton $value, will assume release');
+      _log.warning('Unknown build configuration $value, will assume release');
       return BuildConfiguration.release;
     }
     return buildConfiguration;
@@ -99,8 +99,11 @@ class BuildEnvironment {
       isAndroid: isAndroid,
       androidSdkPath: isAndroid ? Environment.sdkPath : null,
       androidNdkVersion: isAndroid ? Environment.ndkVersion : null,
-      androidMinSdkVersion:
-          isAndroid ? int.parse(Environment.minSdkVersion) : null,
+      androidMinSdkVersion: isAndroid
+          ? (int.tryParse(Environment.minSdkVersion) ??
+              (throw FormatException(
+                  'Invalid minSdkVersion: ${Environment.minSdkVersion}')))
+          : null,
       javaHome: isAndroid ? Environment.javaHome : null,
     );
   }

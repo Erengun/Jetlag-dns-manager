@@ -3,15 +3,20 @@ setlocal
 
 setlocal ENABLEDELAYEDEXPANSION
 
-SET BASEDIR=%~dp0
+SET "BASEDIR=%~dp0"
 
 if not exist "%CARGOKIT_TOOL_TEMP_DIR%" (
     mkdir "%CARGOKIT_TOOL_TEMP_DIR%"
 )
 cd /D "%CARGOKIT_TOOL_TEMP_DIR%"
 
-SET BUILD_TOOL_PKG_DIR=%BASEDIR%build_tool
-SET DART=%FLUTTER_ROOT%\bin\cache\dart-sdk\bin\dart
+if not defined FLUTTER_ROOT (
+    echo ERROR: FLUTTER_ROOT environment variable is not set. >&2
+    exit /b 1
+)
+
+SET "BUILD_TOOL_PKG_DIR=%BASEDIR%build_tool"
+SET "DART=%FLUTTER_ROOT%\bin\cache\dart-sdk\bin\dart"
 
 set BUILD_TOOL_PKG_DIR_POSIX=%BUILD_TOOL_PKG_DIR:\=/%
 

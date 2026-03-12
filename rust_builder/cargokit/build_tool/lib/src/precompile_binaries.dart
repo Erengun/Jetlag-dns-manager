@@ -1,5 +1,7 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+// This is copied from Cargokit (which is the official way to use it currently)
+// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+
+library precompile_binaries;
 
 import 'dart:io';
 
@@ -170,7 +172,11 @@ class PrecompileBinaries {
     }
 
     _log.info('Cleaning up');
-    tempDir.deleteSync(recursive: true);
+    try {
+      tempDir.deleteSync(recursive: true);
+    } catch (e, s) {
+      _log.warning('Failed to clean up temp directory ${tempDir.path}: $e\n$s');
+    }
   }
 
   Future<Release> _getOrCreateRelease({

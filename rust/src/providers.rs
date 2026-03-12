@@ -144,14 +144,16 @@ pub fn custom_provider(
     secondary_dns: String,
     doh_url: Option<String>,
     dot_hostname: Option<String>,
+    primary_dns_ipv6: Option<String>,
+    secondary_dns_ipv6: Option<String>,
 ) -> DnsProvider {
     DnsProvider {
         id,
         name,
         primary_dns,
         secondary_dns,
-        primary_dns_ipv6: None,
-        secondary_dns_ipv6: None,
+        primary_dns_ipv6,
+        secondary_dns_ipv6,
         doh_url,
         dot_hostname,
         description: "User-defined custom DNS server.".to_string(),
@@ -205,6 +207,8 @@ mod tests {
             "My DNS".into(),
             "10.0.0.1".into(),
             "10.0.0.2".into(),
+            None,
+            None,
             None,
             None,
         );

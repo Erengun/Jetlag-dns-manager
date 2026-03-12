@@ -1,5 +1,5 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+// This is copied from Cargokit (which is the official way to use it currently)
+// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
 import 'dart:io';
 
@@ -124,7 +124,13 @@ class PrecompiledBinaries {
   });
 
   static PublicKey _publicKeyFromHex(String key, SourceSpan? span) {
-    final bytes = HEX.decode(key);
+    final List<int> bytes;
+    try {
+      bytes = HEX.decode(key);
+    } on FormatException catch (e) {
+      throw SourceSpanException(
+          'Invalid public key hex: ${e.message}', span);
+    }
     if (bytes.length != 32) {
       throw SourceSpanException(
           'Invalid public key. Must be 32 bytes long.', span);

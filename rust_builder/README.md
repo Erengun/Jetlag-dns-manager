@@ -1,1 +1,1 @@
-Please ignore this folder, which is just glue to build Rust with Flutter.
+Please ignore this folder, which is just glue to build Rust with Flutter. See the flutter_rust_bridge docs for setup and usage: https://fzyzcjy.github.io/flutter_rust_bridge/

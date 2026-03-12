@@ -4,6 +4,11 @@ set -e
 
 BASEDIR=$(dirname "$0")
 
+if [[ -z "${CARGOKIT_TOOL_TEMP_DIR}" ]]; then
+  echo "ERROR: CARGOKIT_TOOL_TEMP_DIR is not set." >&2
+  exit 1
+fi
+
 mkdir -p "$CARGOKIT_TOOL_TEMP_DIR"
 
 cd "$CARGOKIT_TOOL_TEMP_DIR"
@@ -89,7 +94,7 @@ set +e
 exit_code=$?
 
 # 253 means invalid snapshot version.
-if [ $exit_code == 253 ]; then
+if [ "$exit_code" -eq 253 ]; then
   "$DART" pub get --no-precompile
   "$DART" compile kernel bin/build_tool_runner.dart
   "$DART" bin/build_tool_runner.dill "$@"

@@ -114,7 +114,7 @@ class CargoKitPlugin implements Plugin<Project> {
         project.extensions.create("cargokit", CargoKitExtension)
 
         if (plugin == null) {
-            print("Flutter plugin not found, CargoKit plugin will not be applied.")
+            logger.warn("Flutter plugin not found, CargoKit plugin will not be applied.")
             return;
         }
 
@@ -160,7 +160,16 @@ class CargoKitPlugin implements Plugin<Project> {
                     ndkVersion = plugin.project.android.ndkVersion
                     sdkDirectory = plugin.project.android.sdkDirectory
                     minSdkVersion = plugin.project.android.defaultConfig.minSdkVersion.apiLevel as int
-                    compileSdkVersion = plugin.project.android.compileSdkVersion.substring(8) as int
+                    def rawCompileSdk = plugin.project.android.compileSdkVersion
+                    if (rawCompileSdk instanceof String && rawCompileSdk.startsWith("android-")) {
+                        compileSdkVersion = rawCompileSdk.substring(8).toInteger()
+                    } else {
+                        def parsed = rawCompileSdk.toString().toInteger()
+                        if (parsed == null) {
+                            throw new GradleException("Could not parse compileSdkVersion: ${rawCompileSdk}")
+                        }
+                        compileSdkVersion = parsed
+                    }
                     targetPlatforms = platforms
                     pluginFile = CargoKitPlugin.file
                 }

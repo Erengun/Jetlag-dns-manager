@@ -1,5 +1,5 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+// This is copied from Cargokit (which is the official way to use it currently)
+// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
 import 'dart:io';
 
@@ -249,6 +249,9 @@ Future<void> runMain(List<String> args) async {
       ..addCommand(VerifyBinariesCommand());
 
     await runner.run(args);
+  } on UsageException catch (e) {
+    stderr.writeln(e.message);
+    exit(64);
   } on ArgumentError catch (e) {
     stderr.writeln(e.toString());
     exit(1);

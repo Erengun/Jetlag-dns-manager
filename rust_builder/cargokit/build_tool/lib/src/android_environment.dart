@@ -1,5 +1,5 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+// This is copied from Cargokit (which is the official way to use it currently)
+// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
 import 'dart:io';
 import 'dart:isolate';
@@ -96,8 +96,9 @@ class AndroidEnvironment {
       'bin',
     );
 
-    final minSdkVersion =
-        math.max(target.androidMinSdkVersion!, this.minSdkVersion);
+    final minSdkVersion = target.androidMinSdkVersion != null
+        ? math.max(target.androidMinSdkVersion!, this.minSdkVersion)
+        : this.minSdkVersion;
 
     final exe = Platform.isWindows ? '.exe' : '';
 
@@ -113,7 +114,7 @@ class AndroidEnvironment {
 
     final ccKey = 'CC_${target.rust}';
     final ccValue = path.join(toolchainPath, 'clang$exe');
-    final cfFlagsKey = 'CFLAGS_${target.rust}';
+    final cFlagsKey = 'CFLAGS_${target.rust}';
     final cFlagsValue = targetArg;
 
     final cxxKey = 'CXX_${target.rust}';
@@ -153,7 +154,7 @@ class AndroidEnvironment {
     return {
       arKey: arValue,
       ccKey: ccValue,
-      cfFlagsKey: cFlagsValue,
+      cFlagsKey: cFlagsValue,
       cxxKey: cxxValue,
       cxxFlagsKey: cxxFlagsValue,
       ranlibKey: ranlibValue,

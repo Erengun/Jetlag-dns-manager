@@ -45,6 +45,8 @@ pub fn create_custom_provider(
         secondary_dns,
         doh_url,
         dot_hostname,
+        None,
+        None,
     ))
 }
 
@@ -120,7 +122,6 @@ pub fn reset_dns(interface_name: Option<String>) -> DnsChangeResult {
 /// ```dart
 /// final dns = await compute(getDnsViaFRB, interfaceName);
 /// ```
-#[flutter_rust_bridge::frb(sync)]
 pub fn get_current_dns(interface_name: Option<String>) -> Vec<String> {
     #[cfg(target_os = "macos")]
     {
@@ -154,7 +155,6 @@ pub fn get_current_dns(interface_name: Option<String>) -> Vec<String> {
 /// ```dart
 /// final interfaces = await compute(getActiveInterfacesViaFRB, null);
 /// ```
-#[flutter_rust_bridge::frb(sync)]
 pub fn get_active_interfaces() -> Vec<NetworkInterface> {
     #[cfg(target_os = "macos")]
     {

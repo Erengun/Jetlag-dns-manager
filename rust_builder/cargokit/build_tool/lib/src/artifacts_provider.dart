@@ -1,5 +1,5 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+// This is copied from Cargokit (which is the official way to use it currently)
+// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
 import 'dart:io';
 
@@ -22,15 +22,15 @@ class Artifact {
   /// Actual file name that the artifact should have in destination folder.
   final String finalFileName;
 
-  AritifactType get type {
+  ArtifactType get type {
     if (finalFileName.endsWith('.dll') ||
         finalFileName.endsWith('.dll.lib') ||
         finalFileName.endsWith('.pdb') ||
         finalFileName.endsWith('.so') ||
         finalFileName.endsWith('.dylib')) {
-      return AritifactType.dylib;
+      return ArtifactType.dylib;
     } else if (finalFileName.endsWith('.lib') || finalFileName.endsWith('.a')) {
-      return AritifactType.staticlib;
+      return ArtifactType.staticlib;
     } else {
       throw Exception('Unknown artifact type for $finalFileName');
     }
@@ -64,7 +64,7 @@ class ArtifactProvider {
     }
 
     final rustup = Rustup();
-    for (final target in targets) {
+    for (final target in pendingTargets) {
       final builder = RustBuilder(target: target, environment: environment);
       builder.prepare(rustup);
       _log.info('Building ${environment.crateInfo.packageName} for $target');
@@ -74,13 +74,13 @@ class ArtifactProvider {
         ...getArtifactNames(
           target: target,
           libraryName: environment.crateInfo.packageName,
-          aritifactType: AritifactType.dylib,
+          aritifactType: ArtifactType.dylib,
           remote: false,
         ),
         ...getArtifactNames(
           target: target,
           libraryName: environment.crateInfo.packageName,
-          aritifactType: AritifactType.staticlib,
+          aritifactType: ArtifactType.staticlib,
           remote: false,
         )
       };
@@ -218,16 +218,16 @@ class ArtifactProvider {
   }
 }
 
-enum AritifactType {
+enum ArtifactType {
   staticlib,
   dylib,
 }
 
-AritifactType artifactTypeForTarget(Target target) {
+ArtifactType artifactTypeForTarget(Target target) {
   if (target.darwinPlatform != null) {
-    return AritifactType.staticlib;
+    return ArtifactType.staticlib;
   } else {
-    return AritifactType.dylib;
+    return ArtifactType.dylib;
   }
 }
 
@@ -235,17 +235,17 @@ List<String> getArtifactNames({
   required Target target,
   required String libraryName,
   required bool remote,
-  AritifactType? aritifactType,
+  ArtifactType? aritifactType,
 }) {
   aritifactType ??= artifactTypeForTarget(target);
   if (target.darwinArch != null) {
-    if (aritifactType == AritifactType.staticlib) {
+    if (aritifactType == ArtifactType.staticlib) {
       return ['lib$libraryName.a'];
     } else {
       return ['lib$libraryName.dylib'];
     }
   } else if (target.rust.contains('-windows-')) {
-    if (aritifactType == AritifactType.staticlib) {
+    if (aritifactType == ArtifactType.staticlib) {
       return ['$libraryName.lib'];
     } else {
       return [
@@ -255,7 +255,7 @@ List<String> getArtifactNames({
       ];
     }
   } else if (target.rust.contains('-linux-')) {
-    if (aritifactType == AritifactType.staticlib) {
+    if (aritifactType == ArtifactType.staticlib) {
       return ['lib$libraryName.a'];
     } else {
       return ['lib$libraryName.so'];

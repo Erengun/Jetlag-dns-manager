@@ -115,7 +115,7 @@ Go back and make multiple commits whenever possible. Part of the benefit of Conv
 
 ### Doesn’t this discourage rapid development and fast iteration?
 
-It discourages moving fast in a disorganized way. It helps you be able to move fast long term across multiple projects with varied contributors.
+It discourages moving fast in a disorganized way. It helps you be able to move fast long-term across multiple projects with varied contributors.
 
 ### Might Conventional Commits lead developers to limit the type of commits they make because they'll be thinking in the types provided?
 
@@ -138,9 +138,9 @@ Prior to merging or releasing the mistake, we recommend using `git rebase -i` to
 
 #### When you used a type *not* of the spec, e.g. `feet` instead of `feat`
 
-In a worst case scenario, it's not the end of the world if a commit lands that does not meet the conventional commit specification. It simply means that commit will be missed by tools that are based on the spec.
+In a worst-case scenario, it's not the end of the world if a commit lands that does not meet the conventional commit specification. It simply means that commit will be missed by tools that are based on the spec.
 
 ### Do all my contributors need to use the conventional commit specification?
 
-No! If you use a squash based workflow on Git lead maintainers can clean up the commit messages as they're merged—adding no workload to casual committers.
+No! If you use a squash-based workflow on Git lead maintainers can clean up the commit messages as they're merged—adding no workload to casual committers.
 A common workflow for this is to have your git system automatically squash commits from a pull request and present a form for the lead maintainer to enter the proper git commit message for the merge.

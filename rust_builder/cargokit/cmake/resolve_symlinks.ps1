@@ -7,7 +7,8 @@ function Resolve-Symlinks {
     )
 
     [string] $separator = '/'
-    [string[]] $parts = $Path.Split($separator)
+    [string] $normalizedPath = $Path.Replace('\', '/').TrimEnd('/')
+    [string[]] $parts = $normalizedPath.Split($separator)
 
     [string] $realPath = ''
     foreach ($part in $parts) {
@@ -24,11 +25,17 @@ function Resolve-Symlinks {
 
         $item = Get-Item $realPath
         if ($item.LinkTarget) {
-            $realPath = $item.LinkTarget.Replace('\', '/')
+            $linkTarget = $item.LinkTarget.Replace('\', '/')
+            if ([System.IO.Path]::IsPathRooted($linkTarget)) {
+                $realPath = $linkTarget
+            } else {
+                $parentDir = ($realPath -replace '/[^/]+$', '').TrimEnd('/')
+                $realPath = "$parentDir/$linkTarget"
+            }
         }
     }
     $realPath
 }
 
 $path = Resolve-Symlinks -Path $args[0]
-Write-Host $path
+Write-Output $path

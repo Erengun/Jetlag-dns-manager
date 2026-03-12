@@ -1,5 +1,5 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+// This is copied from Cargokit (which is the official way to use it currently)
+// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
 import 'dart:convert';
 import 'dart:io';
@@ -76,6 +76,10 @@ class TestRunCommandResult {
   final String stderr;
 }
 
+/// Test-only override for [runCommand]. When set, [runCommand] calls this
+/// instead of launching a real process. Must be reset to null in test teardown
+/// to avoid cross-test contamination; concurrent tests must not share this
+/// global. Types: [TestRunCommandResult] (return), [TestRunCommandArgs] (input).
 TestRunCommandResult Function(TestRunCommandArgs args)? testRunCommandOverride;
 
 ProcessResult runCommand(
@@ -128,6 +132,17 @@ ProcessResult runCommand(
   }
 }
 
+bool hasHomebrewRustInPath() {
+  if (!Platform.isMacOS) {
+    return false;
+  }
+  final envPath = Platform.environment['PATH'] ?? '';
+  final paths = envPath.split(':');
+  return paths.any((p) {
+    return p.contains('homebrew') && File(path.join(p, 'rustc')).existsSync();
+  });
+}
+
 class RustupNotFoundException implements Exception {
   @override
   String toString() {
@@ -145,17 +160,6 @@ class RustupNotFoundException implements Exception {
         "\$ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh",
       ' ',
     ].join('\n');
-  }
-
-  static bool hasHomebrewRustInPath() {
-    if (!Platform.isMacOS) {
-      return false;
-    }
-    final envPath = Platform.environment['PATH'] ?? '';
-    final paths = envPath.split(':');
-    return paths.any((p) {
-      return p.contains('homebrew') && File(path.join(p, 'rustc')).existsSync();
-    });
   }
 }
 

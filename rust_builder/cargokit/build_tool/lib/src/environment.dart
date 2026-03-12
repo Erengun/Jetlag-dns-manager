@@ -1,11 +1,7 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+// This is copied from Cargokit (which is the official way to use it currently)
+// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
 import 'dart:io';
-
-extension on String {
-  String resolveSymlink() => File(this).resolveSymbolicLinksSync();
-}
 
 class Environment {
   /// Current build configuration (debug or release).
@@ -60,7 +56,7 @@ class Environment {
   static String _getEnvPath(String key) {
     final res = _getEnv(key);
     if (Directory(res).existsSync()) {
-      return res.resolveSymlink();
+      return Directory(res).resolveSymbolicLinksSync();
     } else {
       return res;
     }

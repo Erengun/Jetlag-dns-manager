@@ -102,7 +102,7 @@ impl DnsState {
 }
 
 /// Result of a DNS change operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DnsChangeResult {
     /// Whether the operation succeeded
     pub success: bool,

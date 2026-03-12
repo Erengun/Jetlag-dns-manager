@@ -1,5 +1,5 @@
-/// This is copied from Cargokit (which is the official way to use it currently)
-/// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
+// This is copied from Cargokit (which is the official way to use it currently)
+// Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
 import 'dart:convert';
 import 'dart:io';
@@ -12,7 +12,7 @@ import 'package:path/path.dart' as path;
 
 class CrateHash {
   /// Computes a hash uniquely identifying crate content. This takes into account
-  /// content all all .rs files inside the src directory, as well as Cargo.toml,
+  /// content of all files inside the src directory, as well as Cargo.toml,
   /// Cargo.lock, build.rs and cargokit.yaml.
   ///
   /// If [tempStorage] is provided, computed hash is stored in a file in that directory
