@@ -2,7 +2,7 @@ function Resolve-Symlinks {
     [CmdletBinding()]
     [OutputType([string])]
     param(
-        [Parameter(Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [Parameter(Position = 0, Mandatory)]
         [string] $Path
     )
 
@@ -11,7 +11,17 @@ function Resolve-Symlinks {
     [string[]] $parts = $normalizedPath.Split($separator)
 
     [string] $realPath = ''
+    if ($normalizedPath.StartsWith('//')) {
+        $realPath = '//'
+    } elseif ($normalizedPath.StartsWith('/')) {
+        $realPath = '/'
+    }
+
     foreach ($part in $parts) {
+        if ([string]::IsNullOrEmpty($part)) {
+            continue
+        }
+
         if ($realPath -and !$realPath.EndsWith($separator)) {
             $realPath += $separator
         }

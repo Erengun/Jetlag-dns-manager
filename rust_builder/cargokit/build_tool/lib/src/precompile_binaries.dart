@@ -79,7 +79,7 @@ class PrecompileBinaries {
     );
 
     final tempDir = this.tempDir != null
-        ? Directory(this.tempDir!)
+        ? Directory(this.tempDir!).createTempSync('precompiled_run_')
         : Directory.systemTemp.createTempSync('precompiled_');
 
     tempDir.createSync(recursive: true);
@@ -109,9 +109,11 @@ class PrecompileBinaries {
         remote: true,
       );
 
+      final existingAssets = (release.assets ?? []).map((e) => e.name).toSet();
       if (artifactNames.every((name) {
         final fileName = PrecompileBinaries.fileName(target, name);
-        return (release.assets ?? []).any((e) => e.name == fileName);
+        final sigName = PrecompileBinaries.signatureFileName(target, name);
+        return existingAssets.contains(fileName) && existingAssets.contains(sigName);
       })) {
         _log.info("All artifacts for $target already exist - skipping");
         continue;

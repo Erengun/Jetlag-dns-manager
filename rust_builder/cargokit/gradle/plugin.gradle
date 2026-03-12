@@ -21,8 +21,8 @@ abstract class CargoKitBuildTask extends DefaultTask {
     @Input
     String buildDir
 
-    @Input
-    String outputDir
+    @OutputDirectory
+    File outputDir
 
     @Input
     String ndkVersion
@@ -53,7 +53,11 @@ abstract class CargoKitBuildTask extends DefaultTask {
         }
 
         def executableName = Os.isFamily(Os.FAMILY_WINDOWS) ? "run_build_tool.cmd" : "run_build_tool.sh"
-        def path = Paths.get(new File(pluginFile).parent, "..", executableName);
+        String parent = new File(pluginFile).getParent()
+        if (parent == null) {
+            parent = new File(pluginFile).getAbsolutePath()
+        }
+        def path = Paths.get(parent, "..", executableName);
 
         def manifestDir = Paths.get(project.buildscript.sourceFile.parent, project.cargokit.manifestDir)
 
@@ -73,7 +77,7 @@ abstract class CargoKitBuildTask extends DefaultTask {
             environment "CARGOKIT_MANIFEST_DIR", manifestDir
             environment "CARGOKIT_CONFIGURATION", buildMode
             environment "CARGOKIT_TARGET_TEMP_DIR", buildDir
-            environment "CARGOKIT_OUTPUT_DIR", outputDir
+            environment "CARGOKIT_OUTPUT_DIR", outputDir.absolutePath
             environment "CARGOKIT_NDK_VERSION", ndkVersion
             environment "CARGOKIT_SDK_DIR", sdkDirectory
             environment "CARGOKIT_COMPILE_SDK_VERSION", compileSdkVersion
@@ -114,7 +118,7 @@ class CargoKitPlugin implements Plugin<Project> {
         project.extensions.create("cargokit", CargoKitExtension)
 
         if (plugin == null) {
-            logger.warn("Flutter plugin not found, CargoKit plugin will not be applied.")
+            project.logger.warn("Flutter plugin not found, CargoKit plugin will not be applied.")
             return;
         }
 
@@ -156,19 +160,23 @@ class CargoKitPlugin implements Plugin<Project> {
                 def task = project.tasks.create(taskName, CargoKitBuildTask.class) {
                     buildMode = variant.buildType.name
                     buildDir = cargoBuildDir
-                    outputDir = cargoOutputDir
+                    outputDir = project.file(cargoOutputDir)
                     ndkVersion = plugin.project.android.ndkVersion
                     sdkDirectory = plugin.project.android.sdkDirectory
                     minSdkVersion = plugin.project.android.defaultConfig.minSdkVersion.apiLevel as int
                     def rawCompileSdk = plugin.project.android.compileSdkVersion
-                    if (rawCompileSdk instanceof String && rawCompileSdk.startsWith("android-")) {
-                        compileSdkVersion = rawCompileSdk.substring(8).toInteger()
-                    } else {
-                        def parsed = rawCompileSdk.toString().toInteger()
-                        if (parsed == null) {
-                            throw new GradleException("Could not parse compileSdkVersion: ${rawCompileSdk}")
+                    try {
+                        if (rawCompileSdk instanceof String && rawCompileSdk.startsWith("android-")) {
+                            compileSdkVersion = rawCompileSdk.substring(8).toInteger()
+                        } else {
+                            def parsed = rawCompileSdk.toString().toInteger()
+                            if (parsed == null) {
+                                throw new GradleException("Could not parse compileSdkVersion: ${rawCompileSdk}")
+                            }
+                            compileSdkVersion = parsed
                         }
-                        compileSdkVersion = parsed
+                    } catch (NumberFormatException e) {
+                        throw new GradleException("Could not parse compileSdkVersion: ${rawCompileSdk}", e)
                     }
                     targetPlatforms = platforms
                     pluginFile = CargoKitPlugin.file

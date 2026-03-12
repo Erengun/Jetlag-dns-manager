@@ -28,14 +28,20 @@ class CrateInfo {
   final String packageName;
 
   static CrateInfo parseManifest(String manifest, {final String? fileName}) {
-    final toml = TomlDocument.parse(manifest);
-    final package = toml.toMap()['package'];
-    if (package == null) {
-      throw ManifestException('Missing package section', fileName: fileName);
+    TomlDocument toml;
+    try {
+      toml = TomlDocument.parse(manifest);
+    } on TomlParserException catch (e) {
+      throw ManifestException(e.toString(), fileName: fileName);
+    }
+    final tomlMap = toml.toMap();
+    final package = tomlMap['package'];
+    if (package == null || package is! Map) {
+      throw ManifestException('Missing or invalid package section', fileName: fileName);
     }
     final name = package['name'];
-    if (name == null) {
-      throw ManifestException('Missing package name', fileName: fileName);
+    if (name == null || name is! String) {
+      throw ManifestException('Missing or invalid package name', fileName: fileName);
     }
     return CrateInfo(packageName: name);
   }

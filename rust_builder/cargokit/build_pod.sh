@@ -11,7 +11,16 @@ NEW_PATH=`echo $PATH | tr ":" "\n" | grep -v "Contents/Developer/" | tr "\n" ":"
 
 export PATH=${NEW_PATH%?} # remove trailing :
 
-if [ "$DEBUG" = "1" ]; then env > build_env.log; fi
+if [ "$DEBUG" = "1" ]; then
+  # Documented whitelist of variables safe to log during debug builds
+  ALLOWED_DEBUG_VARS=(PATH USER HOME CI REPO_COMMIT)
+  > build_env.log
+  for var in "${ALLOWED_DEBUG_VARS[@]}"; do
+    if [ -n "${!var+x}" ]; then
+      echo "$var=${!var}" >> build_env.log
+    fi
+  done
+fi
 
 # Platform name (macosx, iphoneos, iphonesimulator)
 export CARGOKIT_DARWIN_PLATFORM_NAME=$PLATFORM_NAME

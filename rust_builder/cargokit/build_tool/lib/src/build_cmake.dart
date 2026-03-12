@@ -34,6 +34,7 @@ class BuildCMake {
 
     for (final lib in libs) {
       if (lib.type == ArtifactType.dylib) {
+        Directory(Environment.outputDir).createSync(recursive: true);
         File(lib.path)
             .copySync(path.join(Environment.outputDir, lib.finalFileName));
       }

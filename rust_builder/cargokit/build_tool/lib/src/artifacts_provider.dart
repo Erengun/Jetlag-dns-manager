@@ -1,6 +1,7 @@
 // This is copied from Cargokit (which is the official way to use it currently)
 // Details: https://fzyzcjy.github.io/flutter_rust_bridge/manual/integrate/builtin
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:ed25519_edwards/ed25519_edwards.dart';
@@ -91,6 +92,10 @@ class ArtifactProvider {
               ))
           .where((element) => File(element.path).existsSync())
           .toList();
+      if (artifacts.isEmpty) {
+        throw Exception('Failed to find expected artifacts for target $target. '
+            'Ensure the build completed successfully and verify artifact paths.');
+      }
       result[target] = artifacts;
     }
     return result;
@@ -165,14 +170,23 @@ class ArtifactProvider {
     const maxAttempts = 10;
     while (true) {
       try {
-        return await get(url, headers: headers);
+        return await get(url, headers: headers).timeout(const Duration(seconds: 30));
       } on SocketException catch (e) {
         // Try to detect reset by peer error and retry.
         if (attempt++ < maxAttempts &&
-            (e.osError?.errorCode == 54 || e.osError?.errorCode == 10054)) {
+            (e.osError?.errorCode == 54 || e.osError?.errorCode == 104 || e.osError?.errorCode == 10054)) {
           _log.severe(
               'Failed to download $url: $e, attempt $attempt of $maxAttempts, will retry...');
-          await Future.delayed(Duration(seconds: 1));
+          await Future.delayed(const Duration(seconds: 1));
+          continue;
+        } else {
+          rethrow;
+        }
+      } on TimeoutException catch (e) {
+        if (attempt++ < maxAttempts) {
+          _log.severe(
+              'Failed to download $url timeout: $e, attempt $attempt of $maxAttempts, will retry...');
+          await Future.delayed(const Duration(seconds: 1));
           continue;
         } else {
           rethrow;

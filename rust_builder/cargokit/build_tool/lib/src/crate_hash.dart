@@ -74,6 +74,11 @@ class CrateHash {
     final input = sha256.startChunkedConversion(output);
 
     void addTextFile(File file) {
+      final relativePath = path.relative(file.path, from: manifestDir);
+      final encodedPath = utf8.encode(relativePath);
+      input.add(utf8.encode('${encodedPath.length}:'));
+      input.add(encodedPath);
+
       // text Files are hashed by lines in case we're dealing with github checkout
       // that auto-converts line endings.
       final splitter = LineSplitter();
@@ -81,9 +86,12 @@ class CrateHash {
         final data = file.readAsStringSync();
         final lines = splitter.convert(data);
         for (final line in lines) {
-          input.add(utf8.encode(line));
+          final encodedLine = utf8.encode(line);
+          input.add(utf8.encode('${encodedLine.length}:'));
+          input.add(encodedLine);
         }
       }
+      input.add(utf8.encode('EOF\n'));
     }
 
     for (final file in files) {

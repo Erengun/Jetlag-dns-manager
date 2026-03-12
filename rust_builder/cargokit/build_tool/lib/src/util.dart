@@ -103,12 +103,20 @@ ProcessResult runCommand(
       stdoutEncoding: stdoutEncoding,
       stderrEncoding: stderrEncoding,
     ));
-    return ProcessResult(
+    final procResult = ProcessResult(
       result.pid,
       result.exitCode,
       result.stdout,
       result.stderr,
     );
+    if (result.exitCode != 0) {
+      throw CommandFailedException(
+        executable: executable,
+        arguments: arguments,
+        result: procResult,
+      );
+    }
+    return procResult;
   }
   log.finer('Running command $executable ${arguments.join(' ')}');
   final res = Process.runSync(

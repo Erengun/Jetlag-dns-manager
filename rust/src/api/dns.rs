@@ -114,13 +114,12 @@ pub fn reset_dns(interface_name: Option<String>) -> DnsChangeResult {
 /// **⚠️ WARNING: Blocking I/O — must be called from a background isolate!**
 ///
 /// This function executes system commands (`resolvectl` on Linux, PowerShell on Windows, etc.)
-/// and will block the calling thread. **Do not call this from the UI thread** or the Flutter
-/// main isolate. Instead, use `compute()`, `Isolate.run()`, or spawn a separate isolate
-/// to avoid freezing the UI.
+/// and will block the calling thread. However, FRB generates async Dart bindings that handle
+/// the blocking I/O safely on a background thread pool, avoiding UI freezes.
 ///
 /// # Example (Dart)
 /// ```dart
-/// final dns = await compute(getDnsViaFRB, interfaceName);
+/// final dns = await getCurrentDns(interfaceName: interfaceName);
 /// ```
 pub fn get_current_dns(interface_name: Option<String>) -> Vec<String> {
     #[cfg(target_os = "macos")]
@@ -148,12 +147,12 @@ pub fn get_current_dns(interface_name: Option<String>) -> Vec<String> {
 ///
 /// This function executes system commands (`networksetup` on macOS,
 /// PowerShell on Windows, `ip` on Linux) and will block the calling thread.
-/// **Do not call this from the UI thread** or the Flutter main isolate. Instead,
-/// use `compute()`, `Isolate.run()`, or spawn a separate isolate to avoid freezing the UI.
+/// However, FRB generates async Dart bindings that handle the blocking I/O 
+/// safely on a background thread pool, avoiding UI freezes.
 ///
 /// # Example (Dart)
 /// ```dart
-/// final interfaces = await compute(getActiveInterfacesViaFRB, null);
+/// final interfaces = await getActiveInterfaces();
 /// ```
 pub fn get_active_interfaces() -> Vec<NetworkInterface> {
     #[cfg(target_os = "macos")]

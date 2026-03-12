@@ -50,6 +50,10 @@ REM To detect changes in package we compare output of DIR /s (recursive)
 set PREV_PACKAGE_INFO=.dart_tool\package_info.prev
 set CUR_PACKAGE_INFO=.dart_tool\package_info.cur
 
+if not exist ".dart_tool" (
+    mkdir ".dart_tool"
+)
+
 DIR "%BUILD_TOOL_PKG_DIR%" /s > "%CUR_PACKAGE_INFO%_orig"
 
 REM Last line in dir output is free space on harddrive. That is bound to

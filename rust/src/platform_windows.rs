@@ -177,15 +177,20 @@ pub fn reset_dns(interface_name: Option<&str>) -> DnsChangeResult {
 
 /// Get current DNS servers on Windows.
 pub fn get_current_dns(interface_name: Option<&str>) -> Vec<String> {
-    let script = match interface_name {
-        Some(iface) => {
-            let escaped_iface = escape_powershell_single_quoted(iface);
-            format!(
+    let alias = match interface_name {
+        Some(iface) => iface.to_string(),
+        None => match detect_default_interface() {
+            Some(iface) => iface,
+            None => return Vec::new(),
+        },
+    };
+
+    let script = {
+        let escaped_iface = escape_powershell_single_quoted(&alias);
+        format!(
             "Get-DnsClientServerAddress -InterfaceAlias '{}' -AddressFamily IPv4 | Select-Object -ExpandProperty ServerAddresses",
             escaped_iface
         )
-        }
-        None => "Get-DnsClientServerAddress -AddressFamily IPv4 | Where-Object {{ $_.ServerAddresses.Count -gt 0 }} | Select-Object -First 1 -ExpandProperty ServerAddresses".to_string(),
     };
 
     match Command::new("powershell")

@@ -69,7 +69,7 @@ class BuildEnvironment {
 
   static BuildConfiguration parseBuildConfiguration(String value) {
     // XCode configuration adds the flavor to configuration name.
-    final firstSegment = value.split('-').first;
+    final firstSegment = value.split('-').first.toLowerCase();
     final buildConfiguration = BuildConfiguration.values.firstWhereOrNull(
       (e) => e.name == firstSegment,
     );

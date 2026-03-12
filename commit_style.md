@@ -8,7 +8,7 @@ The commit message should be structured as follows:
 
 ---
 
-```
+```text
 <type>[optional scope]: <description>
 
 [optional body]
@@ -35,31 +35,31 @@ A scope may be provided to a commit's type, to provide additional contextual inf
 ## Examples
 
 ### Commit message with description and breaking change in body
-```
+```text
 feat: allow provided config object to extend other configs
 
 BREAKING CHANGE: `extends` key in config file is now used for extending other config files
 ```
 
 ### Commit message with optional `!` to draw attention to breaking change
-```
+```text
 chore!: drop Node 6 from testing matrix
 
 BREAKING CHANGE: dropping Node 6 which hits end of life in April
 ```
 
 ### Commit message with no body
-```
+```text
 docs: correct spelling of CHANGELOG
 ```
 
 ### Commit message with scope
-```
+```text
 feat(lang): add polish language
 ```
 
 ### Commit message for a fix using an (optional) issue number.
-```
+```text
 fix: correct minor typos in code
 
 see the issue for details on the typos fixed
@@ -103,7 +103,7 @@ or footer, along with the `!` in the prefix.
 
 ### How should I deal with commit messages in the initial development phase?
 
-We recommend that you proceed as if you've already released the product. Typically *somebody*, even if it's your fellow software developers, is using your software. They'll want to know what's fixed, what breaks etc.
+We recommend that you proceed as if you've already released the product. Typically _somebody_, even if it's your fellow software developers, is using your software. They'll want to know what's fixed, what breaks etc.
 
 ### Are the types in the commit title uppercase or lowercase?
 
@@ -136,7 +136,7 @@ encourage you to make these extensions!)
 
 Prior to merging or releasing the mistake, we recommend using `git rebase -i` to edit the commit history. After release, the cleanup will be different according to what tools and processes you use.
 
-#### When you used a type *not* of the spec, e.g. `feet` instead of `feat`
+#### When you used a type _not_ of the spec, e.g. `feet` instead of `feat`
 
 In a worst-case scenario, it's not the end of the world if a commit lands that does not meet the conventional commit specification. It simply means that commit will be missed by tools that are based on the spec.
 
