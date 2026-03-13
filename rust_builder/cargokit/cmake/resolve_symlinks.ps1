@@ -1,3 +1,4 @@
+# Resolves a chain of symlinks across path components — plural name intentional.
 function Resolve-Symlinks {
     [CmdletBinding()]
     [OutputType([string])]

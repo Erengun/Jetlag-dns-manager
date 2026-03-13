@@ -46,6 +46,12 @@ class CrateInfo {
     return CrateInfo(packageName: name.trim());
   }
 
+  /// Synchronously loads and parses Cargo.toml.
+  ///
+  /// Throws [ManifestException] on file read errors (e.g. [FileSystemException])
+  /// or parsing failures. Callers (like builder.dart, precompile_binaries.dart,
+  /// verify_binaries.dart) rely on this fail-fast behavior and must catch
+  /// [ManifestException] to handle errors.
   static CrateInfo load(String manifestDir) {
     final manifestFile = File(path.join(manifestDir, 'Cargo.toml'));
     final String manifest;

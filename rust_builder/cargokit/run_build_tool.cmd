@@ -12,8 +12,16 @@ if not defined CARGOKIT_TOOL_TEMP_DIR (
 
 if not exist "%CARGOKIT_TOOL_TEMP_DIR%" (
     mkdir "%CARGOKIT_TOOL_TEMP_DIR%"
+    if !ERRORLEVEL! neq 0 (
+        echo ERROR: Failed to create CARGOKIT_TOOL_TEMP_DIR: "%CARGOKIT_TOOL_TEMP_DIR%" >^&2
+        exit /b !ERRORLEVEL!
+    )
 )
 cd /D "%CARGOKIT_TOOL_TEMP_DIR%"
+if !ERRORLEVEL! neq 0 (
+    echo ERROR: Failed to switch to CARGOKIT_TOOL_TEMP_DIR: "%CARGOKIT_TOOL_TEMP_DIR%" >^&2
+    exit /b !ERRORLEVEL!
+)
 
 if not defined FLUTTER_ROOT (
     echo ERROR: FLUTTER_ROOT environment variable is not set. >&2
@@ -118,4 +126,7 @@ If !ERRORLEVEL! equ 253 (
         exit /b !ERRORLEVEL!
     )
     "%DART%" "%PRECOMPILED%" %*
+    exit /b !ERRORLEVEL!
+) else if !ERRORLEVEL! neq 0 (
+    exit /b !ERRORLEVEL!
 )

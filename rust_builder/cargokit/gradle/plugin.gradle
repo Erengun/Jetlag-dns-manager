@@ -55,7 +55,7 @@ abstract class CargoKitBuildTask extends DefaultTask {
         def executableName = Os.isFamily(Os.FAMILY_WINDOWS) ? "run_build_tool.cmd" : "run_build_tool.sh"
         String parent = new File(pluginFile).getParent()
         if (parent == null) {
-            parent = new File(pluginFile).getAbsolutePath()
+            parent = new File(pluginFile).getAbsoluteFile().getParent()
         }
         def path = Paths.get(parent, "..", executableName);
 

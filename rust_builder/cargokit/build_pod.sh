@@ -7,7 +7,7 @@ BASEDIR=$(dirname "$0")
 BASEDIR=$(cd "$BASEDIR" ; pwd -P)
 
 # Remove XCode SDK from path. Otherwise this breaks tool compilation when building iOS project
-NEW_PATH=`echo $PATH | tr ":" "\n" | grep -v "Contents/Developer/" | tr "\n" ":"`
+NEW_PATH=$(printf "%s" "$PATH" | tr ":" "\n" | grep -v "Contents/Developer/" | tr "\n" ":")
 
 export PATH=${NEW_PATH%?} # remove trailing :
 
@@ -32,7 +32,11 @@ export CARGOKIT_DARWIN_ARCHS=$ARCHS
 export CARGOKIT_CONFIGURATION=$CONFIGURATION
 
 # Path to directory containing Cargo.toml.
-export CARGOKIT_MANIFEST_DIR=$PODS_TARGET_SRCROOT/$1
+if [ -z "$1" ]; then
+  echo "ERROR: Missing manifest directory argument for CARGOKIT_MANIFEST_DIR" >&2
+  exit 1
+fi
+export CARGOKIT_MANIFEST_DIR="$PODS_TARGET_SRCROOT/$1"
 
 # Temporary directory for build artifacts.
 export CARGOKIT_TARGET_TEMP_DIR=$TARGET_TEMP_DIR

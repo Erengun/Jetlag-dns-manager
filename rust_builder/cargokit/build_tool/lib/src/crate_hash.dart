@@ -57,7 +57,9 @@ class CrateHash {
 
     final data = ByteData(8);
     for (final file in files) {
-      input.add(utf8.encode(file.path));
+      final relativePath = path.relative(file.path, from: manifestDir);
+      final normalizedPath = path.posix.joinAll(path.split(relativePath));
+      input.add(utf8.encode(normalizedPath));
       final stat = file.statSync();
       data.setUint64(0, stat.size);
       input.add(data.buffer.asUint8List());
@@ -113,7 +115,10 @@ class CrateHash {
         .listSync(recursive: true, followLinks: false)
         .whereType<File>()
         .toList();
-    files.sortBy((element) => element.path);
+    files.sortBy((element) {
+      final relativePath = path.relative(element.path, from: manifestDir);
+      return path.posix.joinAll(path.split(relativePath));
+    });
     void addFile(String relative) {
       final file = File(path.join(manifestDir, relative));
       if (file.existsSync()) {

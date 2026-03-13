@@ -8,11 +8,31 @@
 // when compiled with the `windows-dns` feature.
 
 use crate::models::*;
-use log::warn;
+use log::{error, warn};
 use std::process::Command;
 
 fn escape_powershell_single_quoted(value: &str) -> String {
     value.replace('\'', "''")
+}
+
+fn run_ipconfig_flush() {
+    match Command::new("ipconfig").args(["/flushdns"]).output() {
+        Ok(flush_output) => {
+            if !flush_output.status.success() {
+                let stderr = String::from_utf8_lossy(&flush_output.stderr);
+                let stdout = String::from_utf8_lossy(&flush_output.stdout);
+                warn!(
+                    "ipconfig /flushdns failed (status: {:?}): stderr='{}' stdout='{}'",
+                    flush_output.status.code(),
+                    stderr.trim(),
+                    stdout.trim()
+                );
+            }
+        }
+        Err(e) => {
+            warn!("Failed to execute ipconfig /flushdns: {}", e);
+        }
+    }
 }
 
 /// Set DNS on Windows using PowerShell `Set-DnsClientServerAddress`.
@@ -48,23 +68,7 @@ pub fn set_dns(provider: &DnsProvider, interface_name: Option<&str>) -> DnsChang
         Ok(output) => {
             if output.status.success() {
                 // Flush DNS cache
-                match Command::new("ipconfig").args(["/flushdns"]).output() {
-                    Ok(flush_output) => {
-                        if !flush_output.status.success() {
-                            let stderr = String::from_utf8_lossy(&flush_output.stderr);
-                            let stdout = String::from_utf8_lossy(&flush_output.stdout);
-                            warn!(
-                                "ipconfig /flushdns failed (status: {:?}): stderr='{}' stdout='{}'",
-                                flush_output.status.code(),
-                                stderr.trim(),
-                                stdout.trim()
-                            );
-                        }
-                    }
-                    Err(e) => {
-                        warn!("Failed to execute ipconfig /flushdns: {}", e);
-                    }
-                }
+                run_ipconfig_flush();
 
                 DnsChangeResult::success(
                     DnsChangeMethod::WindowsApi,
@@ -84,12 +88,16 @@ pub fn set_dns(provider: &DnsProvider, interface_name: Option<&str>) -> DnsChang
 
                 // Check if it's a permission error
                 if error_msg.contains("Access is denied")
-                    || error_msg.contains("not recognized")
                     || error_msg.contains("requires elevation")
                 {
                     DnsChangeResult::failure(
                         DnsChangeMethod::WindowsApi,
                         "Administrator privileges required. The Jetlag DNS Service should handle this automatically.",
+                    )
+                } else if error_msg.contains("not recognized") {
+                    DnsChangeResult::failure(
+                        DnsChangeMethod::WindowsApi,
+                        "PowerShell or Set-DnsClientServerAddress cmdlet not recognized. Check your PATH/installation.",
                     )
                 } else {
                     DnsChangeResult::failure(
@@ -133,23 +141,7 @@ pub fn reset_dns(interface_name: Option<&str>) -> DnsChangeResult {
     {
         Ok(output) => {
             if output.status.success() {
-                match Command::new("ipconfig").args(["/flushdns"]).output() {
-                    Ok(flush_output) => {
-                        if !flush_output.status.success() {
-                            let stderr = String::from_utf8_lossy(&flush_output.stderr);
-                            let stdout = String::from_utf8_lossy(&flush_output.stdout);
-                            warn!(
-                                "ipconfig /flushdns failed (status: {:?}): stderr='{}' stdout='{}'",
-                                flush_output.status.code(),
-                                stderr.trim(),
-                                stdout.trim()
-                            );
-                        }
-                    }
-                    Err(e) => {
-                        warn!("Failed to execute ipconfig /flushdns: {}", e);
-                    }
-                }
+                run_ipconfig_flush();
                 DnsChangeResult::success(
                     DnsChangeMethod::WindowsApi,
                     &format!("DNS reset to DHCP defaults on {}", iface),
@@ -210,7 +202,10 @@ pub fn get_current_dns(interface_name: Option<&str>) -> Vec<String> {
                 .filter(|line| !line.is_empty())
                 .collect()
         }
-        Err(_) => Vec::new(),
+        Err(e) => {
+            error!("failed to spawn get_current_dns powershell command: {:?}", e);
+            Vec::new()
+        }
     }
 }
 
@@ -223,6 +218,11 @@ pub fn get_active_interfaces() -> Vec<NetworkInterface> {
         .output()
     {
         Ok(output) => {
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                error!("get_active_interfaces PowerShell failed: {}", stderr.trim());
+                return Vec::new();
+            }
             let stdout = String::from_utf8_lossy(&output.stdout);
             stdout
                 .lines()
@@ -242,7 +242,10 @@ pub fn get_active_interfaces() -> Vec<NetworkInterface> {
                 })
                 .collect()
         }
-        Err(_) => Vec::new(),
+        Err(e) => {
+            error!("failed to spawn get_active_interfaces powershell command: {:?}", e);
+            Vec::new()
+        }
     }
 }
 
@@ -255,6 +258,11 @@ fn detect_default_interface() -> Option<String> {
         .output()
     {
         Ok(output) => {
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                error!("detect_default_interface PowerShell failed: {}", stderr.trim());
+                return None;
+            }
             let stdout = String::from_utf8_lossy(&output.stdout);
             let name = stdout.trim().to_string();
             if name.is_empty() {
@@ -263,6 +271,9 @@ fn detect_default_interface() -> Option<String> {
                 Some(name)
             }
         }
-        Err(_) => None,
+        Err(e) => {
+            error!("failed to spawn detect_default_interface powershell command: {:?}", e);
+            None
+        }
     }
 }
