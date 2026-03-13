@@ -40,15 +40,22 @@ class CrateInfo {
       throw ManifestException('Missing or invalid package section', fileName: fileName);
     }
     final name = package['name'];
-    if (name == null || name is! String) {
+    if (name == null || name is! String || name.trim().isEmpty) {
       throw ManifestException('Missing or invalid package name', fileName: fileName);
     }
-    return CrateInfo(packageName: name);
+    return CrateInfo(packageName: name.trim());
   }
 
   static CrateInfo load(String manifestDir) {
     final manifestFile = File(path.join(manifestDir, 'Cargo.toml'));
-    final manifest = manifestFile.readAsStringSync();
+    final String manifest;
+    try {
+      manifest = manifestFile.readAsStringSync();
+    } on FileSystemException catch (e) {
+      throw ManifestException(e.toString(), fileName: manifestFile.path);
+    } catch (e) {
+      throw ManifestException(e.toString(), fileName: manifestFile.path);
+    }
     return parseManifest(manifest, fileName: manifestFile.path);
   }
 }

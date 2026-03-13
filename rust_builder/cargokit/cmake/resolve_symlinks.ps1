@@ -33,7 +33,7 @@ function Resolve-Symlinks {
             $realPath += '/'
         }
 
-        $item = Get-Item $realPath
+        $item = Get-Item -LiteralPath $realPath
         if ($item.LinkTarget) {
             $linkTarget = $item.LinkTarget.Replace('\', '/')
             if ([System.IO.Path]::IsPathRooted($linkTarget)) {

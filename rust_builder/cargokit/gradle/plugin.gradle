@@ -73,10 +73,10 @@ abstract class CargoKitBuildTask extends DefaultTask {
             executable path
             args "build-gradle"
             environment "CARGOKIT_ROOT_PROJECT_DIR", rootProjectDir
-            environment "CARGOKIT_TOOL_TEMP_DIR", "${buildDir}/build_tool"
+            environment "CARGOKIT_TOOL_TEMP_DIR", "${buildDir}/build_tool/${buildMode}"
             environment "CARGOKIT_MANIFEST_DIR", manifestDir
             environment "CARGOKIT_CONFIGURATION", buildMode
-            environment "CARGOKIT_TARGET_TEMP_DIR", buildDir
+            environment "CARGOKIT_TARGET_TEMP_DIR", "${buildDir}/${buildMode}"
             environment "CARGOKIT_OUTPUT_DIR", outputDir.absolutePath
             environment "CARGOKIT_NDK_VERSION", ndkVersion
             environment "CARGOKIT_SDK_DIR", sdkDirectory
@@ -113,16 +113,17 @@ class CargoKitPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        def plugin = findFlutterPlugin(project.rootProject);
-
         project.extensions.create("cargokit", CargoKitExtension)
 
-        if (plugin == null) {
-            project.logger.warn("Flutter plugin not found, CargoKit plugin will not be applied.")
-            return;
-        }
+        project.gradle.projectsEvaluated {
+            def plugin = findFlutterPlugin(project.rootProject);
 
-        def cargoBuildDir = "${project.buildDir}/build"
+            if (plugin == null) {
+                project.logger.warn("Flutter plugin not found, CargoKit plugin will not be applied.")
+                return;
+            }
+
+            def cargoBuildDir = "${project.buildDir}/build"
 
         // Determine if the project is an application or library
         def isApplication = plugin.project.plugins.hasPlugin('com.android.application')
@@ -147,7 +148,11 @@ class CargoKitPlugin implements Plugin<Project> {
             // The task name depends on plugin properties, which are not available
             // at this point
             project.getGradle().afterProject {
-                def taskName = "cargokitCargoBuild${project.cargokit.libname.capitalize()}${buildType.capitalize()}";
+                def libname = project.cargokit.libname
+                if (libname == null || libname.isEmpty()) {
+                    return
+                }
+                def taskName = "cargokitCargoBuild${libname.capitalize()}${buildType.capitalize()}";
 
                 if (project.tasks.findByName(taskName)) {
                     return
@@ -191,6 +196,7 @@ class CargoKitPlugin implements Plugin<Project> {
                 project.tasks.each onTask
                 project.tasks.whenTaskAdded onTask
             }
+        }
         }
     }
 }

@@ -188,7 +188,7 @@ pub fn get_current_dns(interface_name: Option<&str>) -> Vec<String> {
     let script = {
         let escaped_iface = escape_powershell_single_quoted(&alias);
         format!(
-            "Get-DnsClientServerAddress -InterfaceAlias '{}' -AddressFamily IPv4 | Select-Object -ExpandProperty ServerAddresses",
+            "Get-DnsClientServerAddress -InterfaceAlias '{}' | Select-Object -ExpandProperty ServerAddresses",
             escaped_iface
         )
     };
@@ -248,7 +248,7 @@ pub fn get_active_interfaces() -> Vec<NetworkInterface> {
 
 /// Detect the default network interface on Windows.
 fn detect_default_interface() -> Option<String> {
-    let script = "Get-NetAdapter | Where-Object {$_.Status -eq 'Up'} | Where-Object {$_.InterfaceDescription -notmatch 'Virtual|Loopback'} | Select-Object -First 1 -ExpandProperty Name";
+    let script = "Get-NetRoute -DestinationPrefix '0.0.0.0/0','::/0' | Where-Object { $_.NextHop -ne '' } | Sort-Object RouteMetric | Select-Object -First 1 -ExpandProperty InterfaceAlias";
 
     match Command::new("powershell")
         .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script])

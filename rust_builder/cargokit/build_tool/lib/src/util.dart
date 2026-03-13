@@ -147,7 +147,8 @@ bool hasHomebrewRustInPath() {
   final envPath = Platform.environment['PATH'] ?? '';
   final paths = envPath.split(':');
   return paths.any((p) {
-    return p.contains('homebrew') && File(path.join(p, 'rustc')).existsSync();
+    return (p.contains('homebrew') || p.startsWith('/opt/homebrew') || p.startsWith('/usr/local')) &&
+        File(path.join(p, 'rustc')).existsSync();
   });
 }
 

@@ -75,7 +75,8 @@ class CrateHash {
 
     void addTextFile(File file) {
       final relativePath = path.relative(file.path, from: manifestDir);
-      final encodedPath = utf8.encode(relativePath);
+      final normalizedPath = path.posix.joinAll(path.split(relativePath));
+      final encodedPath = utf8.encode(normalizedPath);
       input.add(utf8.encode('${encodedPath.length}:'));
       input.add(encodedPath);
 

@@ -111,11 +111,12 @@ pub fn reset_dns(interface_name: Option<String>) -> DnsChangeResult {
 
 /// Get the current system DNS servers (desktop only).
 ///
-/// **⚠️ WARNING: Blocking I/O — must be called from a background isolate!**
+/// **⚠️ WARNING: Blocking I/O**
 ///
 /// This function executes system commands (`resolvectl` on Linux, PowerShell on Windows, etc.)
-/// and will block the calling thread. However, FRB generates async Dart bindings that handle
-/// the blocking I/O safely on a background thread pool, avoiding UI freezes.
+/// and will block the calling thread. However, the flutter_rust_bridge async bindings
+/// run them on a background thread pool so Dart callers can await them directly
+/// without wrapping in compute() or Isolate.run().
 ///
 /// # Example (Dart)
 /// ```dart
@@ -143,12 +144,13 @@ pub fn get_current_dns(interface_name: Option<String>) -> Vec<String> {
 
 /// List active network interfaces (desktop only).
 ///
-/// **⚠️ WARNING: Blocking I/O — must be called from a background isolate!**
+/// **⚠️ WARNING: Blocking I/O**
 ///
 /// This function executes system commands (`networksetup` on macOS,
 /// PowerShell on Windows, `ip` on Linux) and will block the calling thread.
-/// However, FRB generates async Dart bindings that handle the blocking I/O 
-/// safely on a background thread pool, avoiding UI freezes.
+/// However, the flutter_rust_bridge async bindings run them on a background 
+/// thread pool so Dart callers can await them directly without wrapping in 
+/// compute() or Isolate.run().
 ///
 /// # Example (Dart)
 /// ```dart

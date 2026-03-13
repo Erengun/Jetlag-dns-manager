@@ -5,6 +5,11 @@ setlocal ENABLEDELAYEDEXPANSION
 
 SET "BASEDIR=%~dp0"
 
+if not defined CARGOKIT_TOOL_TEMP_DIR (
+    echo ERROR: CARGOKIT_TOOL_TEMP_DIR environment variable is not set. >&2
+    exit /b 1
+)
+
 if not exist "%CARGOKIT_TOOL_TEMP_DIR%" (
     mkdir "%CARGOKIT_TOOL_TEMP_DIR%"
 )
@@ -18,7 +23,7 @@ if not defined FLUTTER_ROOT (
 SET "BUILD_TOOL_PKG_DIR=%BASEDIR%build_tool"
 SET "DART=%FLUTTER_ROOT%\bin\cache\dart-sdk\bin\dart"
 
-set BUILD_TOOL_PKG_DIR_POSIX=%BUILD_TOOL_PKG_DIR:\=/%
+set "BUILD_TOOL_PKG_DIR_POSIX=%BUILD_TOOL_PKG_DIR:\=/%"
 
 (
     echo name: build_tool_runner
@@ -54,7 +59,7 @@ if not exist ".dart_tool" (
     mkdir ".dart_tool"
 )
 
-DIR "%BUILD_TOOL_PKG_DIR%" /s > "%CUR_PACKAGE_INFO%_orig"
+DIR "pubspec.yaml" "bin\build_tool_runner.dart" "%BUILD_TOOL_PKG_DIR%" /s > "%CUR_PACKAGE_INFO%_orig"
 
 REM Last line in dir output is free space on harddrive. That is bound to
 REM change between invocation so we need to remove it
@@ -87,14 +92,30 @@ REM which means  we need to do pub get and precompile
 if not exist "%PRECOMPILED%" (
     echo Running pub get in "%cd%"
     "%DART%" pub get --no-precompile
+    if !ERRORLEVEL! neq 0 (
+        echo ERROR: pub get failed. >^&2
+        exit /b !ERRORLEVEL!
+    )
     "%DART%" compile kernel bin/build_tool_runner.dart
+    if !ERRORLEVEL! neq 0 (
+        echo ERROR: compile kernel failed. >^&2
+        exit /b !ERRORLEVEL!
+    )
 )
 
 "%DART%" "%PRECOMPILED%" %*
 
 REM 253 means invalid snapshot version.
-If %ERRORLEVEL% equ 253 (
+If !ERRORLEVEL! equ 253 (
     "%DART%" pub get --no-precompile
+    if !ERRORLEVEL! neq 0 (
+        echo ERROR: pub get failed. >^&2
+        exit /b !ERRORLEVEL!
+    )
     "%DART%" compile kernel bin/build_tool_runner.dart
+    if !ERRORLEVEL! neq 0 (
+        echo ERROR: compile kernel failed. >^&2
+        exit /b !ERRORLEVEL!
+    )
     "%DART%" "%PRECOMPILED%" %*
 )
