@@ -7,7 +7,10 @@ analyzer:
   plugins:
     - riverpod_lint
   exclude: 
-    [build/**, lib/**.freezed.dart, lib/**.g.dart]
+    - "build/**"
+    - "lib/**.freezed.dart"
+    - "lib/**.g.dart"
+    - "rust_builder/cargokit/**"
   errors:
     # Otherwise cause the import of all_lint_rules to warn because of some rules conflicts.
     # We explicitly enabled even conflicting rules and are fixing the conflict
