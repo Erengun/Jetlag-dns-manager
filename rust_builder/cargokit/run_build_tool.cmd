@@ -57,11 +57,11 @@ if not exist bin (
     echo ^}
 ) >bin\build_tool_runner.dart
 
-SET PRECOMPILED=bin\build_tool_runner.dill
+SET "PRECOMPILED=bin\build_tool_runner.dill"
 
 REM To detect changes in package we compare output of DIR /s (recursive)
-set PREV_PACKAGE_INFO=.dart_tool\package_info.prev
-set CUR_PACKAGE_INFO=.dart_tool\package_info.cur
+SET "PREV_PACKAGE_INFO=.dart_tool\package_info.prev"
+SET "CUR_PACKAGE_INFO=.dart_tool\package_info.cur"
 
 if not exist ".dart_tool" (
     mkdir ".dart_tool"

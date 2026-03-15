@@ -35,6 +35,34 @@ fn run_ipconfig_flush() {
     }
 }
 
+fn classify_powershell_error(output: &std::process::Output, context: &str) -> DnsChangeResult {
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let error_msg = if !stderr.trim().is_empty() {
+        stderr.to_string()
+    } else {
+        stdout.to_string()
+    };
+
+    let lower = error_msg.to_ascii_lowercase();
+    if lower.contains("access is denied") || lower.contains("requires elevation") {
+        DnsChangeResult::failure(
+            DnsChangeMethod::WindowsApi,
+            "Administrator privileges required. The Jetlag DNS Service should handle this automatically.",
+        )
+    } else if lower.contains("not recognized") {
+        DnsChangeResult::failure(
+            DnsChangeMethod::WindowsApi,
+            "PowerShell or Set-DnsClientServerAddress cmdlet not recognized. Check your PATH/installation.",
+        )
+    } else {
+        DnsChangeResult::failure(
+            DnsChangeMethod::WindowsApi,
+            &format!("{}: {}", context, error_msg.trim()),
+        )
+    }
+}
+
 /// Set DNS on Windows using PowerShell `Set-DnsClientServerAddress`.
 /// Note: This requires administrator privileges and will trigger UAC.
 /// For seamless UX, use the jetlag_service Windows Service instead.
@@ -92,34 +120,7 @@ pub fn set_dns(provider: &DnsProvider, interface_name: Option<&str>) -> DnsChang
                     ),
                 )
             } else {
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                let error_msg = if !stderr.trim().is_empty() {
-                    stderr.to_string()
-                } else {
-                    stdout.to_string()
-                };
-
-                // Check if it's a permission error (case-insensitive)
-                let lower = error_msg.to_ascii_lowercase();
-                if lower.contains("access is denied")
-                    || lower.contains("requires elevation")
-                {
-                    DnsChangeResult::failure(
-                        DnsChangeMethod::WindowsApi,
-                        "Administrator privileges required. The Jetlag DNS Service should handle this automatically.",
-                    )
-                } else if lower.contains("not recognized") {
-                    DnsChangeResult::failure(
-                        DnsChangeMethod::WindowsApi,
-                        "PowerShell or Set-DnsClientServerAddress cmdlet not recognized. Check your PATH/installation.",
-                    )
-                } else {
-                    DnsChangeResult::failure(
-                        DnsChangeMethod::WindowsApi,
-                        &format!("PowerShell command failed: {}", error_msg.trim()),
-                    )
-                }
+                classify_powershell_error(&output, "PowerShell command failed")
             }
         }
         Err(e) => DnsChangeResult::failure(
@@ -162,32 +163,7 @@ pub fn reset_dns(interface_name: Option<&str>) -> DnsChangeResult {
                     &format!("DNS reset to DHCP defaults on {}", iface),
                 )
             } else {
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                let error_msg = if !stderr.trim().is_empty() {
-                    stderr.to_string()
-                } else {
-                    stdout.to_string()
-                };
-                let lower = error_msg.to_ascii_lowercase();
-                if lower.contains("access is denied")
-                    || lower.contains("requires elevation")
-                {
-                    DnsChangeResult::failure(
-                        DnsChangeMethod::WindowsApi,
-                        "Administrator privileges required. The Jetlag DNS Service should handle this automatically.",
-                    )
-                } else if lower.contains("not recognized") {
-                    DnsChangeResult::failure(
-                        DnsChangeMethod::WindowsApi,
-                        "PowerShell or Set-DnsClientServerAddress cmdlet not recognized. Check your PATH/installation.",
-                    )
-                } else {
-                    DnsChangeResult::failure(
-                        DnsChangeMethod::WindowsApi,
-                        &format!("DNS reset failed: {}", error_msg.trim()),
-                    )
-                }
+                classify_powershell_error(&output, "DNS reset failed")
             }
         }
         Err(e) => DnsChangeResult::failure(

@@ -37,18 +37,17 @@ class CrateHash {
       final quickHashFolder = Directory(path.join(tempStorage, 'crate_hash'));
       quickHashFolder.createSync(recursive: true);
       final quickHashFile = File(path.join(quickHashFolder.path, quickHash));
+      final fingerprint = _computeContentFingerprint(files);
       if (quickHashFile.existsSync()) {
         final lines = quickHashFile.readAsStringSync().split('\n');
         if (lines.length >= 2) {
           final cachedHash = lines[0];
           final cachedFingerprint = lines[1].trim();
-          final currentFingerprint = _computeContentFingerprint(files);
-          if (cachedFingerprint == currentFingerprint) {
+          if (cachedFingerprint == fingerprint) {
             return cachedHash;
           }
         }
       }
-      final fingerprint = _computeContentFingerprint(files);
       final hash = _computeHash(files);
       quickHashFile.writeAsStringSync('$hash\n$fingerprint');
       return hash;
@@ -135,7 +134,7 @@ class CrateHash {
   List<File> getFiles() {
     final src = Directory(path.join(manifestDir, 'src'));
     final List<File> files;
-    if (src.existsSync()) {
+    if (FileSystemEntity.isDirectorySync(src.path)) {
       files = src
           .listSync(recursive: true, followLinks: false)
           .whereType<File>()
