@@ -19,8 +19,9 @@ cd "$CARGOKIT_TOOL_TEMP_DIR"
 
 BUILD_TOOL_PKG_DIR="$BASEDIR/build_tool"
 
-if [[ -z $FLUTTER_ROOT ]]; then # not defined
-  DART=dart
+if [[ -z $FLUTTER_ROOT ]]; then
+  echo "ERROR: FLUTTER_ROOT environment variable is not set." >&2
+  exit 1
 else
   DART="$FLUTTER_ROOT/bin/cache/dart-sdk/bin/dart"
 fi
@@ -47,23 +48,28 @@ Future<void> main(List<String> args) async {
 }
 EOF
 
-# Create alias for `shasum` if it does not exist and `sha1sum` exists
-if ! [ -x "$(command -v shasum)" ] && [ -x "$(command -v sha1sum)" ]; then
-  shopt -s expand_aliases
-  alias shasum="sha1sum"
+# Determine the shasum command: prefer shasum, fall back to sha1sum
+if [ -x "$(command -v shasum)" ]; then
+  SHASUM_CMD="shasum"
+elif [ -x "$(command -v sha1sum)" ]; then
+  SHASUM_CMD="sha1sum"
+else
+  echo "ERROR: Neither shasum nor sha1sum found in PATH." >&2
+  exit 1
 fi
 
 # Dart run will not cache any package that has a path dependency, which
 # is the case for our build_tool_runner. So instead we precompile the package
 # ourselves.
-# To invalidate the cached kernel we use the hash of ls -LR of the build_tool
-# package directory. This should be good enough, as the build_tool package
-# itself is not meant to have any path dependencies.
+# To invalidate the cached kernel we hash the directory listing of
+# build_tool plus pubspec.yaml and bin/build_tool_runner.dart (matching
+# the Windows script) using ls -lTR on macOS and ls -lR --full-time
+# on other systems.
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  PACKAGE_HASH=$(ls -lTR "$BUILD_TOOL_PKG_DIR" | shasum)
+  PACKAGE_HASH=$( (ls -lTR "$BUILD_TOOL_PKG_DIR"; cat "pubspec.yaml" "bin/build_tool_runner.dart") | $SHASUM_CMD)
 else
-  PACKAGE_HASH=$(ls -lR --full-time "$BUILD_TOOL_PKG_DIR" | shasum)
+  PACKAGE_HASH=$( (ls -lR --full-time "$BUILD_TOOL_PKG_DIR"; cat "pubspec.yaml" "bin/build_tool_runner.dart") | $SHASUM_CMD)
 fi
 
 PACKAGE_HASH_FILE=".package_hash"

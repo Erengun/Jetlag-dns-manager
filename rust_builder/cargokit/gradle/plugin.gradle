@@ -125,25 +125,25 @@ class CargoKitPlugin implements Plugin<Project> {
 
             def cargoBuildDir = "${project.buildDir}/build"
 
-        // Determine if the project is an application or library
-        def isApplication = plugin.project.plugins.hasPlugin('com.android.application')
-        def variants = isApplication ? plugin.project.android.applicationVariants : plugin.project.android.libraryVariants
+            // Determine if the project is an application or library
+            def isApplication = plugin.project.plugins.hasPlugin('com.android.application')
+            def variants = isApplication ? plugin.project.android.applicationVariants : plugin.project.android.libraryVariants
 
-        variants.all { variant ->
+            variants.all { variant ->
 
-            final buildType = variant.buildType.name
+                final buildType = variant.buildType.name
 
-            def cargoOutputDir = "${project.buildDir}/jniLibs/${buildType}";
-            def jniLibs = project.android.sourceSets.maybeCreate(buildType).jniLibs;
-            jniLibs.srcDir(new File(cargoOutputDir))
+                def cargoOutputDir = "${project.buildDir}/jniLibs/${buildType}";
+                def jniLibs = project.android.sourceSets.maybeCreate(buildType).jniLibs;
+                jniLibs.srcDir(new File(cargoOutputDir))
 
-            def platforms = com.flutter.gradle.FlutterPluginUtils.getTargetPlatforms(project).collect()
+                def platforms = com.flutter.gradle.FlutterPluginUtils.getTargetPlatforms(project).collect()
 
-            // Same thing addFlutterDependencies does in flutter.gradle
-            if (buildType == "debug") {
-                platforms.add("android-x86")
-                platforms.add("android-x64")
-            }
+                // Same thing addFlutterDependencies does in flutter.gradle
+                if (buildType == "debug") {
+                    platforms.add("android-x86")
+                    platforms.add("android-x64")
+                }
 
             def libname = project.cargokit.libname
             if (libname == null || libname.isEmpty()) {
@@ -192,7 +192,7 @@ class CargoKitPlugin implements Plugin<Project> {
             }
             project.tasks.each onTask
             project.tasks.whenTaskAdded onTask
-        }
+            }
         }
     }
 }

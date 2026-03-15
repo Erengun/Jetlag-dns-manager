@@ -23,13 +23,13 @@ if [ "$DEBUG" = "1" ]; then
 fi
 
 # Platform name (macosx, iphoneos, iphonesimulator)
-export CARGOKIT_DARWIN_PLATFORM_NAME=$PLATFORM_NAME
+export CARGOKIT_DARWIN_PLATFORM_NAME="$PLATFORM_NAME"
 
 # Active architectures (arm64, armv7, x86_64), space separated.
-export CARGOKIT_DARWIN_ARCHS=$ARCHS
+export CARGOKIT_DARWIN_ARCHS="$ARCHS"
 
 # Current build configuration (Debug, Release)
-export CARGOKIT_CONFIGURATION=$CONFIGURATION
+export CARGOKIT_CONFIGURATION="$CONFIGURATION"
 
 # Path to directory containing Cargo.toml.
 if [ -z "$1" ]; then
@@ -39,16 +39,16 @@ fi
 export CARGOKIT_MANIFEST_DIR="$PODS_TARGET_SRCROOT/$1"
 
 # Temporary directory for build artifacts.
-export CARGOKIT_TARGET_TEMP_DIR=$TARGET_TEMP_DIR
+export CARGOKIT_TARGET_TEMP_DIR="$TARGET_TEMP_DIR"
 
 # Output directory for final artifacts.
-export CARGOKIT_OUTPUT_DIR=$PODS_CONFIGURATION_BUILD_DIR/$PRODUCT_NAME
+export CARGOKIT_OUTPUT_DIR="$PODS_CONFIGURATION_BUILD_DIR/$PRODUCT_NAME"
 
 # Directory to store built tool artifacts.
-export CARGOKIT_TOOL_TEMP_DIR=$TARGET_TEMP_DIR/build_tool
+export CARGOKIT_TOOL_TEMP_DIR="$TARGET_TEMP_DIR/build_tool"
 
 # Directory inside root project. Not necessarily the top level directory of root project.
-export CARGOKIT_ROOT_PROJECT_DIR=$SRCROOT
+export CARGOKIT_ROOT_PROJECT_DIR="$SRCROOT"
 
 FLUTTER_EXPORT_BUILD_ENVIRONMENT=(
   "$PODS_ROOT/../Flutter/ephemeral/flutter_export_environment.sh" # macOS
@@ -58,6 +58,7 @@ FLUTTER_EXPORT_BUILD_ENVIRONMENT=(
 for path in "${FLUTTER_EXPORT_BUILD_ENVIRONMENT[@]}"
 do
   if [[ -f "$path" ]]; then
+    # shellcheck disable=SC1090
     source "$path"
   fi
 done

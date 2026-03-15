@@ -42,13 +42,14 @@ class CrateHash {
         if (lines.length >= 2) {
           final cachedHash = lines[0];
           final cachedFingerprint = lines[1].trim();
-          if (cachedFingerprint == _computeContentFingerprint(files)) {
+          final currentFingerprint = _computeContentFingerprint(files);
+          if (cachedFingerprint == currentFingerprint) {
             return cachedHash;
           }
         }
       }
-      final hash = _computeHash(files);
       final fingerprint = _computeContentFingerprint(files);
+      final hash = _computeHash(files);
       quickHashFile.writeAsStringSync('$hash\n$fingerprint');
       return hash;
     } else {

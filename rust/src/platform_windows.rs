@@ -100,15 +100,16 @@ pub fn set_dns(provider: &DnsProvider, interface_name: Option<&str>) -> DnsChang
                     stdout.to_string()
                 };
 
-                // Check if it's a permission error
-                if error_msg.contains("Access is denied")
-                    || error_msg.contains("requires elevation")
+                // Check if it's a permission error (case-insensitive)
+                let lower = error_msg.to_ascii_lowercase();
+                if lower.contains("access is denied")
+                    || lower.contains("requires elevation")
                 {
                     DnsChangeResult::failure(
                         DnsChangeMethod::WindowsApi,
                         "Administrator privileges required. The Jetlag DNS Service should handle this automatically.",
                     )
-                } else if error_msg.contains("not recognized") {
+                } else if lower.contains("not recognized") {
                     DnsChangeResult::failure(
                         DnsChangeMethod::WindowsApi,
                         "PowerShell or Set-DnsClientServerAddress cmdlet not recognized. Check your PATH/installation.",
@@ -168,10 +169,25 @@ pub fn reset_dns(interface_name: Option<&str>) -> DnsChangeResult {
                 } else {
                     stdout.to_string()
                 };
-                DnsChangeResult::failure(
-                    DnsChangeMethod::WindowsApi,
-                    &format!("DNS reset failed: {}", error_msg.trim()),
-                )
+                let lower = error_msg.to_ascii_lowercase();
+                if lower.contains("access is denied")
+                    || lower.contains("requires elevation")
+                {
+                    DnsChangeResult::failure(
+                        DnsChangeMethod::WindowsApi,
+                        "Administrator privileges required. The Jetlag DNS Service should handle this automatically.",
+                    )
+                } else if lower.contains("not recognized") {
+                    DnsChangeResult::failure(
+                        DnsChangeMethod::WindowsApi,
+                        "PowerShell or Set-DnsClientServerAddress cmdlet not recognized. Check your PATH/installation.",
+                    )
+                } else {
+                    DnsChangeResult::failure(
+                        DnsChangeMethod::WindowsApi,
+                        &format!("DNS reset failed: {}", error_msg.trim()),
+                    )
+                }
             }
         }
         Err(e) => DnsChangeResult::failure(
@@ -265,7 +281,7 @@ pub fn get_active_interfaces() -> Vec<NetworkInterface> {
 
 /// Detect the default network interface on Windows.
 fn detect_default_interface() -> Option<String> {
-    let script = "Get-NetRoute -DestinationPrefix '0.0.0.0/0','::/0' | Where-Object { $_.NextHop -ne '' } | Sort-Object RouteMetric | Select-Object -First 1 -ExpandProperty InterfaceAlias";
+    let script = r#"$v4 = Get-NetRoute -AddressFamily IPv4 -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue | Where-Object { $_.NextHop -ne '' } | Sort-Object { $_.RouteMetric + $_.InterfaceMetric } | Select-Object -First 1 -ExpandProperty InterfaceAlias; $v6 = Get-NetRoute -AddressFamily IPv6 -DestinationPrefix '::/0' -ErrorAction SilentlyContinue | Where-Object { $_.NextHop -ne '' } | Sort-Object { $_.RouteMetric + $_.InterfaceMetric } | Select-Object -First 1 -ExpandProperty InterfaceAlias; if ($v4) { $v4 } elseif ($v6) { $v6 }"#;
 
     match Command::new("powershell")
         .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script])

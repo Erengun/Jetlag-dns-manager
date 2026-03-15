@@ -130,3 +130,5 @@ If !ERRORLEVEL! equ 253 (
 ) else if !ERRORLEVEL! neq 0 (
     exit /b !ERRORLEVEL!
 )
+
+exit /b 0

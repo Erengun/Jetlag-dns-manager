@@ -40,8 +40,11 @@ function Resolve-Symlinks {
             if ([System.IO.Path]::IsPathRooted($linkTarget)) {
                 $realPath = $linkTarget
             } else {
-                $parentDir = ($realPath -replace '/[^/]+$', '').TrimEnd('/')
-                $realPath = "$parentDir/$linkTarget"
+                $parentDir = Split-Path -LiteralPath $realPath -Parent
+                if ([string]::IsNullOrEmpty($parentDir)) {
+                    $parentDir = '.'
+                }
+                $realPath = (Join-Path -Path $parentDir -ChildPath $linkTarget).Replace('\', '/')
             }
         }
     }
