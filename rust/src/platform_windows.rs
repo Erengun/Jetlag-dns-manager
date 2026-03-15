@@ -55,7 +55,21 @@ pub fn set_dns(provider: &DnsProvider, interface_name: Option<&str>) -> DnsChang
     let escaped_iface = escape_powershell_single_quoted(&iface);
     let escaped_primary_dns = escape_powershell_single_quoted(&provider.primary_dns);
     let escaped_secondary_dns = escape_powershell_single_quoted(&provider.secondary_dns);
-    let addresses = format!("'{}','{}'", escaped_primary_dns, escaped_secondary_dns);
+    let mut address_parts = vec![
+        format!("'{}'", escaped_primary_dns),
+        format!("'{}'", escaped_secondary_dns),
+    ];
+    if let Some(ipv6) = &provider.primary_dns_ipv6 {
+        if !ipv6.is_empty() {
+            address_parts.push(format!("'{}'", escape_powershell_single_quoted(ipv6)));
+        }
+    }
+    if let Some(ipv6) = &provider.secondary_dns_ipv6 {
+        if !ipv6.is_empty() {
+            address_parts.push(format!("'{}'", escape_powershell_single_quoted(ipv6)));
+        }
+    }
+    let addresses = address_parts.join(",");
     let script = format!(
         "Set-DnsClientServerAddress -InterfaceAlias '{}' -ServerAddresses ({})",
         escaped_iface, addresses
@@ -80,7 +94,7 @@ pub fn set_dns(provider: &DnsProvider, interface_name: Option<&str>) -> DnsChang
             } else {
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 let stdout = String::from_utf8_lossy(&output.stdout);
-                let error_msg = if !stderr.is_empty() {
+                let error_msg = if !stderr.trim().is_empty() {
                     stderr.to_string()
                 } else {
                     stdout.to_string()

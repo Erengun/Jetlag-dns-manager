@@ -38,10 +38,18 @@ class CrateHash {
       quickHashFolder.createSync(recursive: true);
       final quickHashFile = File(path.join(quickHashFolder.path, quickHash));
       if (quickHashFile.existsSync()) {
-        return quickHashFile.readAsStringSync();
+        final lines = quickHashFile.readAsStringSync().split('\n');
+        if (lines.length >= 2) {
+          final cachedHash = lines[0];
+          final cachedFingerprint = lines[1].trim();
+          if (cachedFingerprint == _computeContentFingerprint(files)) {
+            return cachedHash;
+          }
+        }
       }
       final hash = _computeHash(files);
-      quickHashFile.writeAsStringSync(hash);
+      final fingerprint = _computeContentFingerprint(files);
+      quickHashFile.writeAsStringSync('$hash\n$fingerprint');
       return hash;
     } else {
       return _computeHash(files);
@@ -57,8 +65,7 @@ class CrateHash {
 
     final data = ByteData(8);
     for (final file in files) {
-      final relativePath = path.relative(file.path, from: manifestDir);
-      final normalizedPath = path.posix.joinAll(path.split(relativePath));
+      final normalizedPath = _normalizedRelativePath(file.path);
       input.add(utf8.encode(normalizedPath));
       final stat = file.statSync();
       data.setUint64(0, stat.size);
@@ -71,13 +78,28 @@ class CrateHash {
     return base64Url.encode(output.events.single.bytes);
   }
 
+  /// Computes a content fingerprint by hashing the raw bytes of all files.
+  /// Used to validate a quick-hash cache entry against actual file content,
+  /// protecting against metadata-only collisions (same size + mtime, different bytes).
+  String _computeContentFingerprint(List<File> files) {
+    final output = AccumulatorSink<Digest>();
+    final input = sha256.startChunkedConversion(output);
+    for (final file in files) {
+      if (file.existsSync()) {
+        input.add(file.readAsBytesSync());
+      }
+    }
+    input.close();
+    // Truncate to 128 bits for brevity.
+    return base64Url.encode(output.events.single.bytes.sublist(0, 16));
+  }
+
   String _computeHash(List<File> files) {
     final output = AccumulatorSink<Digest>();
     final input = sha256.startChunkedConversion(output);
 
     void addTextFile(File file) {
-      final relativePath = path.relative(file.path, from: manifestDir);
-      final normalizedPath = path.posix.joinAll(path.split(relativePath));
+      final normalizedPath = _normalizedRelativePath(file.path);
       final encodedPath = utf8.encode(normalizedPath);
       input.add(utf8.encode('${encodedPath.length}:'));
       input.add(encodedPath);
@@ -111,14 +133,16 @@ class CrateHash {
 
   List<File> getFiles() {
     final src = Directory(path.join(manifestDir, 'src'));
-    final files = src
-        .listSync(recursive: true, followLinks: false)
-        .whereType<File>()
-        .toList();
-    files.sortBy((element) {
-      final relativePath = path.relative(element.path, from: manifestDir);
-      return path.posix.joinAll(path.split(relativePath));
-    });
+    final List<File> files;
+    if (src.existsSync()) {
+      files = src
+          .listSync(recursive: true, followLinks: false)
+          .whereType<File>()
+          .toList();
+    } else {
+      files = [];
+    }
+    files.sortBy((element) => _normalizedRelativePath(element.path));
     void addFile(String relative) {
       final file = File(path.join(manifestDir, relative));
       if (file.existsSync()) {
@@ -132,6 +156,11 @@ class CrateHash {
     addFile('cargokit.yaml');
     return files;
   }
+
+  /// Returns the relative path from [manifestDir] to [filePath], normalized to
+  /// POSIX separators so that hashing is consistent across platforms.
+  String _normalizedRelativePath(String filePath) =>
+      path.posix.joinAll(path.split(path.relative(filePath, from: manifestDir)));
 
   final String manifestDir;
   final String? tempStorage;

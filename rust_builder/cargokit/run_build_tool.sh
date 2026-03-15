@@ -42,8 +42,8 @@ mkdir -p "bin"
 
 cat << EOF > "bin/build_tool_runner.dart"
 import 'package:build_tool/build_tool.dart' as build_tool;
-void main(List<String> args) {
-  build_tool.runMain(args);
+Future<void> main(List<String> args) async {
+  await build_tool.runMain(args);
 }
 EOF
 

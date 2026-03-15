@@ -14,7 +14,7 @@ export PATH=${NEW_PATH%?} # remove trailing :
 if [ "$DEBUG" = "1" ]; then
   # Documented whitelist of variables safe to log during debug builds
   ALLOWED_DEBUG_VARS=(PATH USER HOME CI REPO_COMMIT)
-  > build_env.log
+  : > build_env.log
   for var in "${ALLOWED_DEBUG_VARS[@]}"; do
     if [ -n "${!var+x}" ]; then
       echo "$var=${!var}" >> build_env.log

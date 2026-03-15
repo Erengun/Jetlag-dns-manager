@@ -11,6 +11,7 @@ analyzer:
     - "lib/**.freezed.dart"
     - "lib/**.g.dart"
     - "rust_builder/cargokit/**"
+    - "lib/src/rust/frb_generated*.dart"
   errors:
     # Otherwise cause the import of all_lint_rules to warn because of some rules conflicts.
     # We explicitly enabled even conflicting rules and are fixing the conflict
@@ -22,10 +23,6 @@ analyzer:
     # for the sake of consistency.
     unused_element_parameter: false
     unrecognized_error_code: ignore
-    # Generated Flutter Rust Bridge code uses untyped patterns that trip this rule.
-    always_specify_types: ignore
-    # Generated Flutter Rust Bridge code uses positional booleans in binding signatures.
-    avoid_positional_boolean_parameters: ignore
 
 linter:
   rules:

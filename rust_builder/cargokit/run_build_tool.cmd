@@ -52,8 +52,8 @@ if not exist bin (
 
 (
     echo import 'package:build_tool/build_tool.dart' as build_tool;
-    echo void main^(List^<String^> args^) ^{
-    echo    build_tool.runMain^(args^);
+    echo Future^<void^> main^(List^<String^> args^) async ^{
+    echo    await build_tool.runMain^(args^);
     echo ^}
 ) >bin\build_tool_runner.dart
 
