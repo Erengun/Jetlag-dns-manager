@@ -60,11 +60,17 @@ dependencies:
   hive_ce_flutter: ^2.3.0
   dio_smart_retry: ^7.0.1
   dio_cache_interceptor: ^4.0.5
+  flutter_rust_bridge: ^2.11.1
+  rust_lib_jetlag_dns_manager:
+    path: rust_builder
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

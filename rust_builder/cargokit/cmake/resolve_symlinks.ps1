@@ -1,0 +1,55 @@
+# Resolves a chain of symlinks across path components — plural name intentional.
+function Resolve-Symlinks {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Position = 0, Mandatory)]
+        [string] $Path
+    )
+
+    [string] $separator = '/'
+    [string] $normalizedPath = $Path.Replace('\', '/').TrimEnd('/')
+    [string[]] $parts = $normalizedPath.Split($separator)
+
+    [string] $realPath = ''
+    if ($normalizedPath.StartsWith('//')) {
+        $realPath = '//'
+    } elseif ($normalizedPath.StartsWith('/')) {
+        $realPath = '/'
+    }
+
+    foreach ($part in $parts) {
+        if ([string]::IsNullOrEmpty($part)) {
+            continue
+        }
+
+        if ($realPath -and !$realPath.EndsWith($separator)) {
+            $realPath += $separator
+        }
+
+        $realPath += $part.Replace('\', '/')
+
+        # The slash is important when using Get-Item on Drive letters in pwsh.
+        if (-not($realPath.Contains($separator)) -and $realPath.EndsWith(':')) {
+            $realPath += '/'
+        }
+
+        $item = Get-Item -LiteralPath $realPath
+        if ($item.LinkTarget) {
+            $linkTarget = $item.LinkTarget.Replace('\', '/')
+            if ([System.IO.Path]::IsPathRooted($linkTarget)) {
+                $realPath = $linkTarget
+            } else {
+                $parentDir = Split-Path -LiteralPath $realPath -Parent
+                if ([string]::IsNullOrEmpty($parentDir)) {
+                    $parentDir = '.'
+                }
+                $realPath = (Join-Path -Path $parentDir -ChildPath $linkTarget).Replace('\', '/')
+            }
+        }
+    }
+    $realPath
+}
+
+$path = Resolve-Symlinks -Path $args[0]
+Write-Output $path

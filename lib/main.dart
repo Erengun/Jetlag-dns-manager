@@ -13,6 +13,7 @@ import 'constants/strings.dart';
 import 'flavors/app_flavor.dart';
 import 'hive/hive.dart';
 import 'my_app.dart';
+import 'src/rust/frb_generated.dart';
 
 /// Try using const constructors as much as possible!
 
@@ -24,6 +25,7 @@ Future<void> main() async {
 Future<void> bootstrap() async {
   /// Initialize packages
   WidgetsFlutterBinding.ensureInitialized();
+  await RustLib.init();
   await EasyLocalization.ensureInitialized();
   await initHive();
   await setPreferredOrientations();
